@@ -163,9 +163,22 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <footer className="border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          Not financial advice. Do your own research. ©{" "}
-          {new Date().getFullYear()} BuyOrBeSold.com
+        <footer className="flex flex-col items-center gap-2 border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+          <div className="flex items-center gap-4">
+            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
+              Briefings
+            </Link>
+            <Link href="/newsletter" className="hover:text-[color:var(--accent)]">
+              Newsletter
+            </Link>
+            <a href="/rss.xml" className="hover:text-[color:var(--accent)]">
+              RSS
+            </a>
+          </div>
+          <div>
+            Not financial advice. Do your own research. ©{" "}
+            {new Date().getFullYear()} BuyOrBeSold.com
+          </div>
         </footer>
       </main>
     </div>

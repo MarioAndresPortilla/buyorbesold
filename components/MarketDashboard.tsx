@@ -24,23 +24,19 @@ const THEME_KEY = "bobs-theme";
 
 export default function MarketDashboard({ initialData, brief }: MarketDashboardProps) {
   const [data, setData] = useState<MarketData>(initialData);
-  const [theme, setTheme] = useState<Theme>("dark");
+  // Lazy initializer reads whatever the pre-hydration script in layout.tsx
+  // already wrote to body[data-theme] (saved pref → prefers-color-scheme → dark).
+  // This avoids a flash from the React-default "dark" back to the user's real theme.
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document === "undefined") return "dark";
+    const t = document.body.dataset.theme;
+    return t === "light" || t === "dark" ? (t as Theme) : "dark";
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load persisted theme on mount.
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(THEME_KEY) as Theme | null;
-      if (saved === "light" || saved === "dark") {
-        setTheme(saved);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  // Apply theme to <body> so CSS variables flip site-wide.
+  // Apply theme to <body> and persist. The initial value already matches what
+  // the pre-hydration script set, so this effect is a no-op on first render.
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.body.dataset.theme = theme;
@@ -204,7 +200,7 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
         {/* Row 4: Heatmap + Macro calendar */}
         <section className="grid gap-5 lg:grid-cols-2">
           <Panel title="Sector Heatmap">
-            <SectorHeatmap jitter />
+            <SectorHeatmap sectors={data.sectors} />
           </Panel>
           <Panel title="This Week's Macro Events">
             <MacroCalendar />

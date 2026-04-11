@@ -1,4 +1,4 @@
-import type { FearGreed, MarketData, Ticker } from "./types";
+import type { FearGreed, MarketData, Sector, Ticker } from "./types";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
@@ -192,6 +192,36 @@ export async function safeBitcoin(): Promise<Ticker> {
   }
 }
 
+// SPDR sector ETFs — the standard 10 S&P 500 sector proxies plus communication services (XLC).
+// Code → (symbol, display name). Includes XLC which was split off from XLK in 2018.
+const SECTOR_ETFS: Array<{ code: string; symbol: string; name: string }> = [
+  { code: "TECH", symbol: "XLK", name: "Technology" },
+  { code: "ENERGY", symbol: "XLE", name: "Energy" },
+  { code: "FINANCE", symbol: "XLF", name: "Financials" },
+  { code: "HEALTH", symbol: "XLV", name: "Healthcare" },
+  { code: "CONSUM", symbol: "XLY", name: "Consumer Disc." },
+  { code: "INDUST", symbol: "XLI", name: "Industrials" },
+  { code: "UTIL", symbol: "XLU", name: "Utilities" },
+  { code: "REIT", symbol: "XLRE", name: "Real Estate" },
+  { code: "MATS", symbol: "XLB", name: "Materials" },
+  { code: "COMMS", symbol: "XLC", name: "Communications" },
+];
+
+export async function fetchSectors(): Promise<Sector[]> {
+  const results = await Promise.all(
+    SECTOR_ETFS.map(async ({ code, symbol, name }) => {
+      try {
+        const t = await fetchYahoo(symbol, symbol, name);
+        return { code, name, changePct: t.changePct } satisfies Sector;
+      } catch (err) {
+        console.warn(`[markets] sector ${symbol} fetch warn:`, err);
+        return { code, name, changePct: 0 } satisfies Sector;
+      }
+    })
+  );
+  return results;
+}
+
 export async function fetchAllMarkets(): Promise<MarketData> {
   const [
     sp500,
@@ -208,6 +238,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     dia,
     dxy,
     tnx,
+    sectors,
     fearGreed,
   ] = await Promise.all([
     safeYahoo("^GSPC", "SPX", "S&P 500"),
@@ -224,6 +255,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     safeYahoo("DIA", "DIA", "SPDR Dow Jones"),
     safeYahoo("DX-Y.NYB", "DXY", "US Dollar Index"),
     safeYahoo("^TNX", "TNX", "10Y Treasury Yield"),
+    fetchSectors(),
     fetchFearGreed(),
   ]);
 
@@ -242,6 +274,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     dia,
     dxy,
     tnx,
+    sectors,
     fearGreed,
     updatedAt: new Date().toISOString(),
   };

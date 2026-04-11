@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BRIEFS, getBriefBySlug } from "@/lib/briefs";
 import NewsletterSignup from "@/components/NewsletterSignup";
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
 
 interface PageProps {
   params: { slug: string };
@@ -11,12 +15,28 @@ export function generateStaticParams() {
   return BRIEFS.map((b) => ({ slug: b.slug }));
 }
 
-export function generateMetadata({ params }: PageProps) {
+export function generateMetadata({ params }: PageProps): Metadata {
   const brief = getBriefBySlug(params.slug);
-  if (!brief) return { title: "Brief not found — BuyOrBeSold" };
+  if (!brief) return { title: "Brief not found" };
+  const url = `${SITE_URL}/briefings/${brief.slug}`;
   return {
-    title: `${brief.title} — BuyOrBeSold`,
+    title: brief.title,
     description: brief.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      title: brief.title,
+      description: brief.summary,
+      url,
+      type: "article",
+      publishedTime: brief.date,
+      authors: ["Mario"],
+      tags: brief.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brief.title,
+      description: brief.summary,
+    },
   };
 }
 
@@ -24,8 +44,45 @@ export default function BriefPage({ params }: PageProps) {
   const brief = getBriefBySlug(params.slug);
   if (!brief) notFound();
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/briefings/${brief.slug}`,
+    },
+    headline: brief.title,
+    description: brief.summary,
+    datePublished: brief.date,
+    dateModified: brief.date,
+    author: [
+      {
+        "@type": "Person",
+        name: "Mario",
+        url: SITE_URL,
+      },
+    ],
+    publisher: {
+      "@type": "Organization",
+      name: "BuyOrBeSold",
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icon.svg`,
+      },
+    },
+    keywords: brief.tags.join(", "),
+    articleSection: "Markets",
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+  };
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <header className="border-b border-[color:var(--border)]">
         <div className="mx-auto flex max-w-[760px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
           <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">

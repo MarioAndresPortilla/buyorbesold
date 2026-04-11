@@ -31,6 +31,7 @@ export interface MarketData {
   dia: Ticker;
   dxy: Ticker;
   tnx: Ticker;
+  sectors: Sector[];
   fearGreed: FearGreed;
   updatedAt: string;
 }
