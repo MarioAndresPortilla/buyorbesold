@@ -102,23 +102,23 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <header className="sticky top-0 z-20 border-b border-[color:var(--border)] bg-[color:var(--bg)]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-lg tracking-wider text-[color:var(--accent)]">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-2 px-3 py-2.5 xs:gap-3 xs:px-4 xs:py-3">
+          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
               B/S
             </span>
-            <div className="flex flex-col leading-none">
-              <span className="font-bebas text-xl tracking-wider text-[color:var(--text)]">
+            <div className="flex min-w-0 flex-col leading-none">
+              <span className="truncate font-bebas text-lg tracking-wider text-[color:var(--text)] xs:text-xl">
                 BUYORBESOLD
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+              <span className="hidden truncate font-mono text-[9px] uppercase tracking-[0.2em] text-[color:var(--muted)] xs:inline">
                 Markets · Bullion · Bitcoin
               </span>
             </div>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-2 sm:flex">
+          <div className="flex shrink-0 items-center gap-1.5 xs:gap-3">
+            <span className="hidden items-center gap-2 md:flex">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -131,17 +131,24 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="rounded-md border border-[color:var(--border)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] disabled:opacity-50"
+              className="rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] disabled:opacity-50 xs:px-2.5 xs:text-[10px] xs:tracking-[0.15em]"
+              aria-label="Refresh market data"
             >
-              {loading ? "Refreshing…" : "Refresh"}
+              {loading ? "…" : "↻"}
+              <span className="ml-1 hidden xs:inline">
+                {loading ? "Refreshing" : "Refresh"}
+              </span>
             </button>
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-md border border-[color:var(--border)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+              className="rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] xs:px-2.5 xs:text-[10px] xs:tracking-[0.15em]"
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
             >
-              {theme === "dark" ? "☀ Light" : "☾ Dark"}
+              {theme === "dark" ? "☀" : "☾"}
+              <span className="ml-1 hidden xs:inline">
+                {theme === "dark" ? "Light" : "Dark"}
+              </span>
             </button>
           </div>
         </div>
@@ -231,27 +238,31 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 function TickerRow({ ticker, showRange = false }: { ticker: Ticker; showRange?: boolean }) {
   const up = ticker.changePct >= 0;
   return (
-    <div className="flex items-center gap-3 py-3">
-      <div className="w-20 shrink-0">
-        <div className="font-mono text-xs font-bold text-[color:var(--text)]">
+    <div className="flex items-center gap-2 py-3 xs:gap-3">
+      <div className="w-16 shrink-0 xs:w-20">
+        <div className="truncate font-mono text-xs font-bold text-[color:var(--text)]">
           {ticker.symbol}
         </div>
-        <div className="font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">
+        <div className="truncate font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">
           {ticker.name ?? ""}
         </div>
       </div>
-      <div className="hidden flex-1 sm:block">
-        <Sparkline data={ticker.history} up={up} width={180} height={36} className="w-full" />
+      <div className="hidden min-w-0 flex-1 md:block">
+        <Sparkline data={ticker.history} up={up} height={36} className="w-full" />
       </div>
-      <div className="flex-1">
+      <div className="hidden min-w-0 flex-1 sm:block">
         {showRange ? (
           <RangeBar low={ticker.low52} high={ticker.high52} current={ticker.price} />
         ) : (
           <div className="h-0" />
         )}
       </div>
-      <div className="w-28 shrink-0 text-right">
-        <div className="font-mono text-sm font-semibold text-[color:var(--text)]">
+      {/* On narrow screens where sparkline+range are hidden, show a compact sparkline instead */}
+      <div className="min-w-0 flex-1 sm:hidden">
+        <Sparkline data={ticker.history} up={up} height={32} className="w-full" />
+      </div>
+      <div className="w-[88px] shrink-0 text-right xs:w-28">
+        <div className="truncate font-mono text-[13px] font-semibold text-[color:var(--text)] xs:text-sm">
           {formatPrice(ticker.price)}
         </div>
         <div

@@ -1,5 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f4f6" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "BuyOrBeSold — Markets. Bullion. Bitcoin. No noise.",

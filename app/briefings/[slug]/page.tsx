@@ -27,25 +27,26 @@ export default function BriefPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[760px] items-center justify-between px-4 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-lg tracking-wider text-[color:var(--accent)]">
+        <div className="mx-auto flex max-w-[760px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
               B/S
             </span>
-            <span className="font-bebas text-xl tracking-wider">BUYORBESOLD</span>
+            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">BUYORBESOLD</span>
           </Link>
-          <nav className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--muted)]">
+          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              All briefs
+              <span className="xs:hidden">Briefs</span>
+              <span className="hidden xs:inline">All briefs</span>
             </Link>
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dashboard
+              Dash<span className="hidden xs:inline">board</span>
             </Link>
           </nav>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[760px] px-4 py-12">
+      <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
         <Link
           href="/briefings"
           className="font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--muted)] hover:text-[color:var(--accent)]"
@@ -57,10 +58,10 @@ export default function BriefPage({ params }: PageProps) {
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
             {brief.date} · {brief.tags.join(" · ")}
           </div>
-          <h1 className="mt-2 font-bebas text-5xl leading-[0.95] tracking-wide text-[color:var(--text)] sm:text-6xl">
+          <h1 className="mt-2 font-bebas text-[36px] leading-[0.95] tracking-wide text-[color:var(--text)] xs:text-5xl sm:text-6xl">
             {brief.title}
           </h1>
-          <p className="mt-6 text-lg leading-relaxed text-[color:var(--muted)]">
+          <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--muted)] xs:text-lg">
             {brief.summary}
           </p>
         </div>

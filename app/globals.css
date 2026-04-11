@@ -36,6 +36,14 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Last-line-of-defense against horizontal scroll on narrow phones (e.g. Galaxy S7 at 360px). */
+  overflow-x: hidden;
+}
+
+/* Ensure canvas elements never punch through their containers. */
+canvas {
+  max-width: 100%;
+  display: block;
 }
 
 .font-bebas {

@@ -27,21 +27,24 @@ export default async function HomePage() {
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       {/* Top nav */}
       <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-lg tracking-wider text-[color:var(--accent)]">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
               B/S
             </span>
-            <span className="font-bebas text-xl tracking-wider">BUYORBESOLD</span>
+            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">
+              BUYORBESOLD
+            </span>
           </Link>
-          <nav className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--muted)]">
+          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dashboard
+              Dash
+              <span className="hidden xs:inline">board</span>
             </Link>
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              Briefings
+              Briefs
             </Link>
-            <Link href="/newsletter" className="hover:text-[color:var(--accent)]">
+            <Link href="/newsletter" className="hidden hover:text-[color:var(--accent)] xs:inline">
               Newsletter
             </Link>
           </nav>
@@ -50,29 +53,29 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="border-b border-[color:var(--border)]">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 text-center sm:py-24">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 text-center xs:py-16 sm:py-24">
           <span className="inline-block rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
             Daily Market Brief
           </span>
-          <h1 className="mt-6 font-bebas text-6xl leading-[0.95] tracking-wide text-[color:var(--text)] sm:text-7xl md:text-[96px]">
+          <h1 className="mt-6 font-bebas text-[44px] leading-[0.95] tracking-wide text-[color:var(--text)] xs:text-5xl sm:text-7xl md:text-[96px]">
             Markets. Bullion.
             <br />
             Bitcoin. <span className="text-[color:var(--accent)]">No noise.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[color:var(--muted)] sm:text-lg">
+          <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-relaxed text-[color:var(--muted)] sm:text-lg">
             One brief each weekday. S&amp;P 500, gold, silver, bitcoin, commodities, and the
             macro that moves them — with my personal take. No pumping, no affiliate spam.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col items-stretch justify-center gap-3 xs:flex-row xs:items-center xs:flex-wrap">
             <Link
               href="/dashboard"
-              className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.15em] text-black hover:opacity-90"
+              className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-5 py-3 text-center font-mono text-xs font-bold uppercase tracking-[0.15em] text-black hover:opacity-90"
             >
               See full dashboard →
             </Link>
             <Link
               href="/newsletter"
-              className="rounded-md border border-[color:var(--border)] px-5 py-3 font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--text)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+              className="rounded-md border border-[color:var(--border)] px-5 py-3 text-center font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--text)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
             >
               Get the daily brief →
             </Link>
@@ -138,7 +141,7 @@ export default async function HomePage() {
             <FearGreedGauge
               score={market.fearGreed.score}
               label={market.fearGreed.label}
-              size={220}
+              maxSize={220}
               compact
             />
           </div>

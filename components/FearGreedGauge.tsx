@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface FearGreedGaugeProps {
   score: number;
   label: string;
-  size?: number;
+  /** Max rendered width in px. Gauge shrinks to fit narrower containers. */
+  maxSize?: number;
   compact?: boolean;
 }
 
@@ -20,32 +21,48 @@ const SEGMENTS: Array<{ start: number; end: number; color: string; title: string
 export default function FearGreedGauge({
   score,
   label,
-  size = 260,
+  maxSize = 260,
   compact = false,
 }: FearGreedGaugeProps) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const height = Math.round(size * 0.6);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [size, setSize] = useState<number>(Math.min(maxSize, 220));
 
   useEffect(() => {
-    const canvas = ref.current;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const update = () => {
+      const w = wrap.clientWidth;
+      if (w > 0) setSize(Math.max(160, Math.min(maxSize, w)));
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [maxSize]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const w = size;
+    const h = Math.round(w * 0.6);
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${height}px`;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, size, height);
+    ctx.clearRect(0, 0, w, h);
 
-    const cx = size / 2;
-    const cy = height - 12;
-    const radius = Math.min(size, height * 2) / 2 - 20;
-    const stroke = 10;
+    const cx = w / 2;
+    const cy = h - 12;
+    const radius = Math.min(w, h * 2) / 2 - 20;
+    const stroke = Math.max(8, Math.round(w * 0.04));
 
-    // Draw arc segments
     SEGMENTS.forEach((seg) => {
       const startAngle = Math.PI + (seg.start / 100) * Math.PI;
       const endAngle = Math.PI + (seg.end / 100) * Math.PI;
@@ -57,7 +74,6 @@ export default function FearGreedGauge({
       ctx.stroke();
     });
 
-    // Needle
     const clamped = Math.max(0, Math.min(100, score));
     const needleAngle = Math.PI + (clamped / 100) * Math.PI;
     const needleLen = radius - 6;
@@ -72,7 +88,6 @@ export default function FearGreedGauge({
     ctx.lineCap = "round";
     ctx.stroke();
 
-    // Hub
     ctx.beginPath();
     ctx.arc(cx, cy, 5, 0, Math.PI * 2);
     ctx.fillStyle = "#ffffff";
@@ -80,11 +95,17 @@ export default function FearGreedGauge({
     ctx.strokeStyle = "rgba(0,0,0,0.3)";
     ctx.lineWidth = 1;
     ctx.stroke();
-  }, [score, size, height]);
+  }, [score, size]);
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <canvas ref={ref} aria-label={`Fear & Greed Index: ${score} (${label})`} />
+    <div
+      ref={wrapRef}
+      className="flex w-full max-w-[260px] flex-col items-center gap-2"
+    >
+      <canvas
+        ref={canvasRef}
+        aria-label={`Fear & Greed Index: ${score} (${label})`}
+      />
       <div className="flex flex-col items-center">
         <div className="font-bebas text-5xl leading-none tracking-wider text-[color:var(--text)]">
           {score}
@@ -94,15 +115,15 @@ export default function FearGreedGauge({
         </div>
       </div>
       {!compact && (
-        <div className="mt-2 flex w-full items-center justify-between font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">
+        <div className="mt-2 flex w-full items-center justify-between gap-1 font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">
           {SEGMENTS.map((s) => (
             <div key={s.title} className="flex items-center gap-1">
               <span
-                className="h-2 w-2 rounded-full"
+                className="h-2 w-2 shrink-0 rounded-full"
                 style={{ background: s.color }}
                 aria-hidden
               />
-              <span className="hidden sm:inline">{s.title}</span>
+              <span className="hidden md:inline">{s.title}</span>
             </div>
           ))}
         </div>

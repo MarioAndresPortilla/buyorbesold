@@ -10,21 +10,21 @@ interface DailyBriefProps {
 
 export default function DailyBrief({ brief, market, compact = false }: DailyBriefProps) {
   return (
-    <article className="flex h-full flex-col gap-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-      <div className="flex items-center justify-between">
+    <article className="flex h-full flex-col gap-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4 xs:p-6">
+      <div className="flex items-center justify-between gap-2">
         <span className="rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--accent)]">
           Daily Brief
         </span>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
+        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
           {brief.date}
         </span>
       </div>
 
-      <h2 className="font-bebas text-3xl leading-tight tracking-wide text-[color:var(--text)] sm:text-4xl">
+      <h2 className="font-bebas text-2xl leading-tight tracking-wide text-[color:var(--text)] xs:text-3xl sm:text-4xl">
         {brief.title}
       </h2>
 
-      <p className="text-[15px] leading-relaxed text-[color:var(--muted)]">
+      <p className="text-[14px] leading-relaxed text-[color:var(--muted)] xs:text-[15px]">
         {brief.summary}
       </p>
 
@@ -79,11 +79,11 @@ function MiniMetric({
 }) {
   const up = delta >= 0;
   return (
-    <div>
-      <div className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
+    <div className="min-w-0">
+      <div className="truncate font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)] xs:text-[10px]">
         {label}
       </div>
-      <div className="font-mono text-sm font-semibold text-[color:var(--text)]">
+      <div className="truncate font-mono text-[13px] font-semibold text-[color:var(--text)] xs:text-sm">
         {value}
       </div>
       <div
