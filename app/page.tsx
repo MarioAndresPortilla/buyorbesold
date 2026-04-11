@@ -43,11 +43,11 @@ export default async function HomePage() {
             <Link href="/scanner" className="hover:text-[color:var(--accent)]">
               Scanner
             </Link>
-            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              Briefs
+            <Link href="/journal" className="hover:text-[color:var(--accent)]">
+              Journal
             </Link>
-            <Link href="/newsletter" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Newsletter
+            <Link href="/briefings" className="hidden hover:text-[color:var(--accent)] xs:inline">
+              Briefs
             </Link>
           </nav>
         </div>
@@ -172,6 +172,9 @@ export default async function HomePage() {
             </Link>
             <Link href="/scanner" className="hover:text-[color:var(--accent)]">
               Scanner
+            </Link>
+            <Link href="/journal" className="hover:text-[color:var(--accent)]">
+              Journal
             </Link>
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
               Briefings

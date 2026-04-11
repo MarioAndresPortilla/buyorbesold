@@ -8,7 +8,7 @@
  *   KV_REST_API_TOKEN
  */
 
-import type { ScannerResult } from "./types";
+import type { ScannerResult, Trade } from "./types";
 
 export function isKvAvailable(): boolean {
   return Boolean(
@@ -128,5 +128,68 @@ export async function recordDigestRequest(email: string): Promise<{ ok: boolean;
     console.warn("[kv] recordDigestRequest fail:", err);
     // Fail open — still send the email rather than block.
     return { ok: true };
+  }
+}
+
+// ---- Trading journal ----
+
+const TRADE_PREFIX = "journal:trade:";
+const TRADE_INDEX = "journal:trades:index";
+
+export async function saveTrade(trade: Trade): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    await kv.set(`${TRADE_PREFIX}${trade.id}`, trade);
+    // Score = entry date ms (or createdAt) so zrange returns chronological order.
+    const score = new Date(trade.entryDate).getTime() || Date.now();
+    await kv.zadd(TRADE_INDEX, { score, member: trade.id });
+    return true;
+  } catch (err) {
+    console.warn("[kv] saveTrade fail:", err);
+    return false;
+  }
+}
+
+export async function getTrade(id: string): Promise<Trade | null> {
+  const kv = await getKv();
+  if (!kv) return null;
+  try {
+    const t = await kv.get<Trade>(`${TRADE_PREFIX}${id}`);
+    return t ?? null;
+  } catch (err) {
+    console.warn("[kv] getTrade fail:", err);
+    return null;
+  }
+}
+
+export async function listTrades(limit = 100): Promise<Trade[]> {
+  const kv = await getKv();
+  if (!kv) return [];
+  try {
+    const ids = await kv.zrange<string[]>(TRADE_INDEX, 0, limit - 1, {
+      rev: true,
+    });
+    if (!ids || !ids.length) return [];
+    const trades = await kv.mget<Trade[]>(
+      ...ids.map((id) => `${TRADE_PREFIX}${id}`)
+    );
+    return trades.filter((t): t is Trade => t !== null);
+  } catch (err) {
+    console.warn("[kv] listTrades fail:", err);
+    return [];
+  }
+}
+
+export async function deleteTrade(id: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    await kv.del(`${TRADE_PREFIX}${id}`);
+    await kv.zrem(TRADE_INDEX, id);
+    return true;
+  } catch (err) {
+    console.warn("[kv] deleteTrade fail:", err);
+    return false;
   }
 }

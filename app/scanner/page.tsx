@@ -40,14 +40,14 @@ export default async function ScannerPage() {
             </span>
           </Link>
           <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dash<span className="hidden xs:inline">board</span>
+            <Link href="/journal" className="hover:text-[color:var(--accent)]">
+              Journal
             </Link>
             <Link href="/scanner/history" className="hover:text-[color:var(--accent)]">
               Archive
             </Link>
-            <Link href="/briefings" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Briefs
+            <Link href="/dashboard" className="hidden hover:text-[color:var(--accent)] xs:inline">
+              Dash<span className="hidden xs:inline">board</span>
             </Link>
           </nav>
         </div>

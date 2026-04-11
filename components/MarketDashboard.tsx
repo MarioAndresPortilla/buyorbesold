@@ -207,27 +207,46 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
           </Panel>
         </section>
 
-        {/* Row 5: Day Trader Scanner teaser */}
-        <section>
+        {/* Row 5: Scanner + Journal teasers */}
+        <section className="grid gap-4 lg:grid-cols-2">
           <Link
             href="/scanner"
             className="group block overflow-hidden rounded-xl border border-[color:var(--border)] bg-gradient-to-r from-[color:var(--surface)] to-[color:var(--surface)]/60 p-5 transition-colors hover:border-[color:var(--accent)]"
           >
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
-                  Day Trader Scanner
-                </div>
-                <h3 className="font-bebas text-2xl tracking-wide text-[color:var(--text)] xs:text-3xl">
-                  Today's Top 3 Long + Short Setups
-                </h3>
-                <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-[color:var(--muted)]">
-                  Small-cap setups: float &lt;20M, RVOL &gt;1.5x, bouncing off the 50 or
-                  200-day SMA. Updates every 5 minutes during market hours.
-                </p>
+            <div className="flex flex-col items-start gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
+                Day Trader Scanner
               </div>
-              <span className="shrink-0 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-opacity group-hover:opacity-90">
+              <h3 className="font-bebas text-2xl tracking-wide text-[color:var(--text)] xs:text-3xl">
+                Today's top 3 long + short setups
+              </h3>
+              <p className="text-[13px] leading-relaxed text-[color:var(--muted)]">
+                Small-cap setups: float &lt;20M, RVOL &gt;1.5x, bouncing off the
+                50 or 200-day SMA. Updates every 5 min.
+              </p>
+              <span className="mt-1 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-opacity group-hover:opacity-90">
                 Open scanner →
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/journal"
+            className="group block overflow-hidden rounded-xl border border-[color:var(--border)] bg-gradient-to-r from-[color:var(--surface)] to-[color:var(--surface)]/60 p-5 transition-colors hover:border-[color:var(--accent)]"
+          >
+            <div className="flex flex-col items-start gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
+                Public trading journal
+              </div>
+              <h3 className="font-bebas text-2xl tracking-wide text-[color:var(--text)] xs:text-3xl">
+                Mario's live trade log
+              </h3>
+              <p className="text-[13px] leading-relaxed text-[color:var(--muted)]">
+                Every trade, every setup, win rate and R-multiple. Fully public
+                — watch the thesis, the exit, and the receipts.
+              </p>
+              <span className="mt-1 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-opacity group-hover:opacity-90">
+                Open journal →
               </span>
             </div>
           </Link>

@@ -111,6 +111,77 @@ export interface WatchlistEntry {
   sma200Delta?: number;
 }
 
+// ---- Trading journal ----
+
+export type TradeSide = "long" | "short";
+export type TradeStatus = "open" | "closed";
+export type TradeOutcome = "win" | "loss" | "breakeven";
+export type SetupType = "sma-bounce" | "breakout" | "catalyst" | "reversal" | "other";
+
+export interface Trade {
+  id: string;
+  symbol: string;
+  side: TradeSide;
+  setupType: SetupType;
+  entryDate: string; // ISO
+  entryPrice: number;
+  exitDate?: string;
+  exitPrice?: number;
+  size: number;
+  stop?: number;
+  target?: number;
+  thesis: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+
+  // Derived — computed at read time, not stored.
+  status?: TradeStatus;
+  outcome?: TradeOutcome;
+  pnl?: number;
+  pnlPct?: number;
+  rMultiple?: number;
+}
+
+export interface TradeInput {
+  symbol: string;
+  side: TradeSide;
+  setupType: SetupType;
+  entryDate: string;
+  entryPrice: number;
+  exitDate?: string;
+  exitPrice?: number;
+  size: number;
+  stop?: number;
+  target?: number;
+  thesis: string;
+  tags?: string[];
+}
+
+export interface JournalStats {
+  totalTrades: number;
+  openTrades: number;
+  closedTrades: number;
+  wins: number;
+  losses: number;
+  breakeven: number;
+  winRate: number;
+  totalPnl: number;
+  totalPnlPct: number;
+  avgWin: number;
+  avgLoss: number;
+  expectancy: number; // avg PnL per trade
+  avgRMultiple?: number;
+  bestTrade?: Trade;
+  worstTrade?: Trade;
+}
+
+export interface SessionClaims {
+  sub: string; // email
+  iat: number;
+  exp: number;
+}
+
 export interface ScannerResult {
   topLongs: SetupCandidate[];
   topShorts: SetupCandidate[];

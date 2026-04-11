@@ -96,11 +96,11 @@ export default function BriefPage({ params }: PageProps) {
               <span className="xs:hidden">Briefs</span>
               <span className="hidden xs:inline">All briefs</span>
             </Link>
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dash<span className="hidden xs:inline">board</span>
-            </Link>
-            <Link href="/scanner" className="hidden hover:text-[color:var(--accent)] xs:inline">
+            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
               Scanner
+            </Link>
+            <Link href="/journal" className="hidden hover:text-[color:var(--accent)] xs:inline">
+              Journal
             </Link>
           </nav>
         </div>
