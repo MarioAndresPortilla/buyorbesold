@@ -1,0 +1,14 @@
+{
+  "$comment": "Mario's watchlist. Edit this file, git push, deploy = updated on site. Each item: symbol (Yahoo format), optional note (<120 chars).",
+  "updatedAt": "2026-04-11",
+  "items": [
+    { "symbol": "SPY", "note": "The tape. Anchor to everything." },
+    { "symbol": "QQQ", "note": "Tech beta. Reaction to rates matters more than earnings." },
+    { "symbol": "GLD", "note": "Core bullion exposure. Long while real yields hold." },
+    { "symbol": "SLV", "note": "Leverage to gold — and to industrial demand when mfg PMI turns." },
+    { "symbol": "IWM", "note": "Small caps. Leading indicator for risk appetite." },
+    { "symbol": "TLT", "note": "Long bonds. Watch the 20y for rates reversal." },
+    { "symbol": "UUP", "note": "Dollar. If DXY breaks, gold + BTC are the bid." },
+    { "symbol": "VIX", "note": "Volatility regime. >20 = careful. <13 = complacency warning." }
+  ]
+}

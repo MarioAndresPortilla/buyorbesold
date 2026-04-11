@@ -29,6 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      url: `${SITE_URL}/scanner/history`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
+    {
       url: `${SITE_URL}/briefings`,
       lastModified: latest,
       changeFrequency: "daily",

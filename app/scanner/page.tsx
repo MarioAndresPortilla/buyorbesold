@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { runScanner } from "@/lib/scanner";
-import type { SetupCandidate } from "@/lib/types";
+import { enrichWatchlist } from "@/lib/watchlist";
+import type { SetupCandidate, WatchlistEntry } from "@/lib/types";
 import { arrow, formatPct, formatPrice, formatTime, formatCompact } from "@/lib/format";
+import DigestButton from "@/components/DigestButton";
 
 export const revalidate = 300;
 
@@ -20,7 +22,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ScannerPage() {
-  const scan = await runScanner();
+  const [scan, watchlist] = await Promise.all([
+    runScanner(),
+    enrichWatchlist(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
@@ -38,11 +43,11 @@ export default async function ScannerPage() {
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
               Dash<span className="hidden xs:inline">board</span>
             </Link>
-            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              Briefs
+            <Link href="/scanner/history" className="hover:text-[color:var(--accent)]">
+              Archive
             </Link>
-            <Link href="/newsletter" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Newsletter
+            <Link href="/briefings" className="hidden hover:text-[color:var(--accent)] xs:inline">
+              Briefs
             </Link>
           </nav>
         </div>
@@ -68,6 +73,17 @@ export default async function ScannerPage() {
             </p>
           </div>
           <CriteriaCard criteria={scan.criteria} />
+        </section>
+
+        {/* Digest email action row */}
+        <section className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <DigestButton />
+          <Link
+            href="/scanner/history"
+            className="font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--accent)] hover:underline"
+          >
+            View archive →
+          </Link>
         </section>
 
         {/* Notes / degraded warnings */}
@@ -100,6 +116,11 @@ export default async function ScannerPage() {
           candidates={scan.topShorts}
           kind="short"
         />
+
+        {/* Mario's watchlist */}
+        {watchlist.length > 0 && (
+          <WatchlistPanel entries={watchlist} />
+        )}
 
         {/* Methodology */}
         <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
@@ -313,6 +334,32 @@ function SetupCard({
         />
       </div>
 
+      {/* Latest news (if available) */}
+      {candidate.latestNews && (
+        <a
+          href={candidate.latestNews.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block border-t border-[color:var(--border)]/60 pt-2 font-mono text-[10px] leading-relaxed"
+          title={new Date(candidate.latestNews.datetime).toUTCString()}
+        >
+          <span
+            className={`mr-1 rounded px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider ${
+              candidate.latestNews.fresh
+                ? "bg-amber-500/20 text-amber-400"
+                : "bg-[color:var(--border)]/60 text-[color:var(--muted)]"
+            }`}
+          >
+            {candidate.latestNews.fresh ? "NEWS · LAST 24H" : "NEWS"}
+          </span>
+          <span className="text-[color:var(--accent)] hover:underline">
+            {candidate.latestNews.headline.length > 90
+              ? candidate.latestNews.headline.slice(0, 90) + "…"
+              : candidate.latestNews.headline}
+          </span>
+        </a>
+      )}
+
       {/* External links */}
       <div className="flex gap-2 border-t border-[color:var(--border)]/60 pt-3 font-mono text-[10px] uppercase tracking-wider">
         <a
@@ -341,6 +388,78 @@ function SetupCard({
         </a>
       </div>
     </div>
+  );
+}
+
+function WatchlistPanel({ entries }: { entries: WatchlistEntry[] }) {
+  return (
+    <section>
+      <div className="mb-3 flex items-baseline justify-between gap-2">
+        <div>
+          <h2 className="font-bebas text-2xl tracking-wide xs:text-3xl">
+            <span className="text-[color:var(--accent)]">▸</span> Mario's watchlist
+          </h2>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--muted)]">
+            What I'm personally watching today
+          </p>
+        </div>
+      </div>
+      <div className="divide-y divide-[color:var(--border)] rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]">
+        {entries.map((e) => {
+          const up = e.changePct >= 0;
+          const color = up ? "var(--up)" : "var(--down)";
+          return (
+            <div key={e.symbol} className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bebas text-xl leading-none tracking-wide text-[color:var(--text)]">
+                      {e.symbol}
+                    </span>
+                    {e.name && (
+                      <span className="truncate font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
+                        {e.name}
+                      </span>
+                    )}
+                  </div>
+                  {e.note && (
+                    <p className="mt-1 text-[12px] leading-relaxed text-[color:var(--muted)]">
+                      {e.note}
+                    </p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="font-mono text-sm font-semibold text-[color:var(--text)]">
+                    {formatPrice(e.price)}
+                  </div>
+                  <div
+                    className="font-mono text-[11px] font-semibold"
+                    style={{ color }}
+                  >
+                    {arrow(e.changePct)} {formatPct(e.changePct)}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] text-[color:var(--muted)]">
+                <span>RVOL {e.rvol.toFixed(1)}x</span>
+                {e.sma50Delta !== undefined && (
+                  <span>
+                    50 SMA {e.sma50Delta >= 0 ? "+" : ""}
+                    {e.sma50Delta.toFixed(1)}%
+                  </span>
+                )}
+                {e.sma200Delta !== undefined && (
+                  <span>
+                    200 SMA {e.sma200Delta >= 0 ? "+" : ""}
+                    {e.sma200Delta.toFixed(1)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

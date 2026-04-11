@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runScanner } from "@/lib/scanner";
+import { saveScannerSnapshot } from "@/lib/kv";
 
 export const runtime = "nodejs";
 // Scanner is expensive (30+ external calls per run) — cache for 5 minutes.
@@ -11,6 +12,12 @@ export const maxDuration = 30;
 export async function GET() {
   try {
     const result = await runScanner();
+    // Opportunistic archive: first caller of each UTC day captures a snapshot
+    // in KV (no-op if KV isn't provisioned). Fire-and-forget — never blocks
+    // the response.
+    saveScannerSnapshot(result).catch((err) =>
+      console.warn("[/api/scanner] snapshot warn:", err)
+    );
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",

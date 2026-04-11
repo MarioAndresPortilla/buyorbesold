@@ -60,6 +60,15 @@ export interface Brief {
   tags: string[];
 }
 
+export interface NewsItem {
+  headline: string;
+  url: string;
+  source?: string;
+  datetime: string;
+  /** ISO string 24h ago or earlier = not fresh. */
+  fresh: boolean;
+}
+
 export interface SetupCandidate {
   symbol: string;
   name?: string;
@@ -79,6 +88,27 @@ export interface SetupCandidate {
   score: number;
   /** Reasons this survived the filter — used as UI chips. */
   tags: string[];
+  /** Most recent headline (if Finnhub is configured). */
+  latestNews?: NewsItem;
+}
+
+export interface WatchlistItem {
+  symbol: string;
+  note?: string;
+}
+
+export interface WatchlistEntry {
+  symbol: string;
+  name?: string;
+  note?: string;
+  price: number;
+  changePct: number;
+  rvol: number;
+  sma50?: number;
+  sma200?: number;
+  /** 0 = at MA, 100 = 100% away. Signed (+ above MA, - below). */
+  sma50Delta?: number;
+  sma200Delta?: number;
 }
 
 export interface ScannerResult {

@@ -1,4 +1,4 @@
-import type { ScannerResult, SetupCandidate } from "./types";
+import type { NewsItem, ScannerResult, SetupCandidate } from "./types";
 
 /**
  * Scanner for Mario's day-trading setup:
@@ -78,6 +78,18 @@ type FinnhubProfile = {
   name?: string;
 };
 
+type FinnhubNewsItem = {
+  category?: string;
+  datetime?: number; // unix seconds
+  headline?: string;
+  id?: number;
+  image?: string;
+  related?: string;
+  source?: string;
+  summary?: string;
+  url?: string;
+};
+
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -131,6 +143,38 @@ async function fetchFinnhubProfile(symbol: string, apiKey: string): Promise<Finn
     return await fetchJson<FinnhubProfile>(url);
   } catch (err) {
     console.warn(`[scanner] finnhub profile fail ${symbol}:`, err);
+    return null;
+  }
+}
+
+async function fetchFinnhubNews(
+  symbol: string,
+  apiKey: string
+): Promise<NewsItem | null> {
+  try {
+    const now = Date.now();
+    const to = new Date(now).toISOString().slice(0, 10);
+    const from = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const url = `${FINNHUB_BASE}/company-news?symbol=${encodeURIComponent(
+      symbol
+    )}&from=${from}&to=${to}&token=${apiKey}`;
+    const items = await fetchJson<FinnhubNewsItem[]>(url);
+    if (!Array.isArray(items) || items.length === 0) return null;
+    // Most recent first (Finnhub returns newest first, but sort just in case).
+    items.sort((a, b) => (b.datetime ?? 0) - (a.datetime ?? 0));
+    const top = items[0];
+    if (!top.headline || !top.url || !top.datetime) return null;
+    const publishedMs = top.datetime * 1000;
+    const ageMs = Date.now() - publishedMs;
+    return {
+      headline: top.headline,
+      url: top.url,
+      source: top.source,
+      datetime: new Date(publishedMs).toISOString(),
+      fresh: ageMs <= 24 * 60 * 60 * 1000,
+    };
+  } catch (err) {
+    console.warn(`[scanner] finnhub news fail ${symbol}:`, err);
     return null;
   }
 }
@@ -373,6 +417,22 @@ export async function runScanner(): Promise<ScannerResult> {
     .filter((c) => c.changePct < 0)
     .sort((a, b) => b.score - a.score || a.changePct - b.changePct)
     .slice(0, 3);
+
+  // 8. Enrich top picks with latest news (only the 6 that will actually be
+  //    shown — keeps Finnhub usage minimal).
+  if (apiKey) {
+    const topPicks = [...longs, ...shorts];
+    const newsResults = await Promise.all(
+      topPicks.map((c) => fetchFinnhubNews(c.symbol, apiKey))
+    );
+    topPicks.forEach((c, i) => {
+      const news = newsResults[i];
+      if (news) {
+        c.latestNews = news;
+        if (news.fresh) c.tags.unshift("CATALYST");
+      }
+    });
+  }
 
   if (!longs.length && !shorts.length) {
     notes.push(
