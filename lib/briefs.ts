@@ -1,47 +1,127 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import matter from "gray-matter";
 import type { Brief } from "./types";
 
-// In-file brief store for MVP. Replace with markdown files or a CMS in phase 2.
-export const BRIEFS: Brief[] = [
-  {
-    slug: "2026-04-10-bullion-still-has-room",
-    date: "2026-04-10",
-    title: "Bullion still has room, and nobody's talking about it",
-    summary:
-      "Gold and silver are quietly grinding higher while everyone argues about tech earnings. The setup looks familiar.",
-    take:
-      "I keep saying it: bullion is the trade that doesn't need a headline to work. Central banks kept buying through the last leg up, real yields haven't ripped against the metal, and retail is still parked in cash and large-cap tech. That's the ingredient list for slow, grinding upside — not a vertical move. I'm still long physical and miners, still not chasing, still sizing like someone who wants to be around next year.",
-    tags: ["gold", "silver", "bullion", "macro"],
-  },
-  {
-    slug: "2026-04-09-spx-vs-btc-correlation",
-    date: "2026-04-09",
-    title: "SPX and BTC are trading like the same asset again",
-    summary:
-      "The 30-day correlation between the S&P 500 and Bitcoin just flipped back above 0.7. That matters for how you size.",
-    take:
-      "Bitcoin is not a diversifier right now. When SPX sneezes, BTC catches it — and that's fine, as long as you're honest about it in your risk budget. Stop pretending a 60/40 with a 5% BTC sleeve is hedged. It isn't. It's just a beta sleeve with extra volatility. Either you want that exposure or you don't.",
-    tags: ["bitcoin", "sp500", "risk"],
-  },
-  {
-    slug: "2026-04-08-cpi-week-setup",
-    date: "2026-04-08",
-    title: "CPI week: what I'm watching and what I'm ignoring",
-    summary:
-      "Headline inflation prints Thursday. Here's the 60-second version of what moves and what doesn't.",
-    take:
-      "Core services ex-housing is the only line that matters to the Fed's reaction function right now. Headline will make the news, core will make the tape. I don't trade the print — I trade the reaction to the reaction, usually the next day. If the dollar fades on a hot number, that's the tell.",
-    tags: ["cpi", "macro", "fed"],
-  },
-];
+/**
+ * Briefs live as Markdown files under `content/briefings/*.md`.
+ *
+ * Frontmatter:
+ *   ---
+ *   title: string (required)
+ *   date:  YYYY-MM-DD (required)
+ *   summary: string (required, 1–2 sentences)
+ *   tags: [string] (optional)
+ *   ---
+ *
+ * Body content becomes the "take" — Mario's voice, his call, his reasoning.
+ * The slug is derived from the filename (without .md).
+ *
+ * Parsed eagerly at module load and cached in-process. Next.js will re-run
+ * this module on each deploy, so new markdown files show up after `git push`.
+ */
+
+const BRIEFS_DIR = join(process.cwd(), "content", "briefings");
+
+let cached: Brief[] | null = null;
+
+function parseFile(filename: string): Brief | null {
+  try {
+    const full = join(BRIEFS_DIR, filename);
+    const raw = readFileSync(full, "utf8");
+    const { data, content } = matter(raw);
+
+    const title = typeof data.title === "string" ? data.title.trim() : "";
+    const summary = typeof data.summary === "string" ? data.summary.trim() : "";
+    const take = content.trim();
+
+    let date = "";
+    if (typeof data.date === "string") date = data.date;
+    else if (data.date instanceof Date) date = data.date.toISOString().slice(0, 10);
+
+    const tags = Array.isArray(data.tags)
+      ? data.tags
+          .filter((t): t is string => typeof t === "string")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : [];
+
+    if (!title || !date || !summary || !take) {
+      console.warn(`[briefs] skipping ${filename}: missing required frontmatter`);
+      return null;
+    }
+
+    return {
+      slug: filename.replace(/\.md$/, ""),
+      date,
+      title,
+      summary,
+      take,
+      tags,
+    };
+  } catch (err) {
+    console.warn(`[briefs] parse fail ${filename}:`, err);
+    return null;
+  }
+}
+
+function loadAll(): Brief[] {
+  if (cached) return cached;
+  let files: string[] = [];
+  try {
+    files = readdirSync(BRIEFS_DIR).filter((f) => f.endsWith(".md"));
+  } catch (err) {
+    console.warn("[briefs] content/briefings not readable:", err);
+    files = [];
+  }
+  const briefs = files
+    .map(parseFile)
+    .filter((b): b is Brief => b !== null)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  cached = briefs;
+  return briefs;
+}
+
+// Re-exported for anywhere that still imports `BRIEFS` directly.
+// Acts as a snapshot at first access.
+export const BRIEFS: Brief[] = loadAll();
 
 export function getBriefs(): Brief[] {
-  return [...BRIEFS].sort((a, b) => (a.date < b.date ? 1 : -1));
+  return [...loadAll()];
 }
 
 export function getLatestBrief(): Brief {
-  return getBriefs()[0];
+  const all = loadAll();
+  if (all.length === 0) {
+    // Fallback so the homepage never crashes on a fresh install.
+    return {
+      slug: "placeholder",
+      date: new Date().toISOString().slice(0, 10),
+      title: "No briefs published yet",
+      summary: "Check back soon — the first brief drops shortly.",
+      take: "This is a placeholder that appears when no markdown briefs are present in content/briefings/.",
+      tags: [],
+    };
+  }
+  return all[0];
 }
 
 export function getBriefBySlug(slug: string): Brief | undefined {
-  return BRIEFS.find((b) => b.slug === slug);
+  return loadAll().find((b) => b.slug === slug);
+}
+
+/**
+ * Collect the set of unique tags across all briefs, sorted by frequency
+ * (most-used first). Used to populate the tag filter chips on /briefings.
+ */
+export function getAllTags(): Array<{ tag: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const b of loadAll()) {
+    for (const tag of b.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }

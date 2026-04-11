@@ -5,6 +5,7 @@ import {
   isAuthConfigured,
   signMagicLinkToken,
 } from "@/lib/auth";
+import { LIMITS, enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -48,6 +49,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const ip = getClientIp(req);
+    const rl = await enforceRateLimit(`login:${ip}`, LIMITS.login);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many sign-in attempts. Try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rl.resetIn),
+          },
+        }
+      );
+    }
+
     const body = (await req.json().catch(() => ({}))) as { email?: string };
     const email = (body.email ?? "").trim().toLowerCase();
     if (!email || !EMAIL_RE.test(email)) {
@@ -71,13 +86,14 @@ export async function POST(req: Request) {
     if (!resendKey) {
       console.warn("[auth/login] RESEND_API_KEY not set — printing magic link to logs:");
       console.warn(link);
+      // Only return the link in the response when running locally. In
+      // production we refuse so a leaked API key can't be turned into a
+      // magic-link generator.
+      const isLocal = process.env.NODE_ENV !== "production";
       return NextResponse.json({
         success: true,
         dev: true,
-        // Helpful for local dev: return the link in the response body when
-        // Resend isn't configured. Remove this check for prod hardening if
-        // you never want the link exposed via the API.
-        link,
+        ...(isLocal ? { link } : {}),
       });
     }
 

@@ -1,10 +1,23 @@
 import { ImageResponse } from "next/og";
-import { getBriefBySlug } from "@/lib/briefs";
 
 export const runtime = "edge";
 export const alt = "BuyOrBeSold daily market brief";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+// Parse a readable title + date from the slug. The slug format is always
+// YYYY-MM-DD-title-words-here. We avoid filesystem imports here because this
+// route runs on the Edge runtime (required for @vercel/og), which can't read
+// markdown files at request time. Title reconstruction from the slug is good
+// enough for OG card sharing.
+function parseSlug(slug: string): { date: string; title: string } {
+  const m = slug.match(/^(\d{4}-\d{2}-\d{2})-(.+)$/);
+  if (!m) return { date: "", title: slug };
+  const rest = m[2]
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return { date: m[1], title: rest };
+}
 
 // Satori requires every multi-child div to declare `display: flex`, and it
 // treats `A{x}B` as multiple children — prefer template literals.
@@ -13,10 +26,8 @@ export default async function OgImage({
 }: {
   params: { slug: string };
 }) {
-  const brief = getBriefBySlug(params.slug);
-  const title = brief?.title ?? "Daily Market Brief";
-  const date = brief?.date ?? "";
-  const tags = brief?.tags ?? [];
+  const { date, title } = parseSlug(params.slug);
+  const tags: string[] = [];
 
   return new ImageResponse(
     (

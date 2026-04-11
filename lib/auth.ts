@@ -71,6 +71,15 @@ export async function signMagicLinkToken(email: string): Promise<string> {
   return signToken(email, MAGIC_LINK_TTL_SECONDS);
 }
 
+/**
+ * Long-lived (1 year) signed unsubscribe token. CAN-SPAM requires one-click
+ * unsubscribe, so we embed a signed token in newsletter emails that can't be
+ * forged by anyone without AUTH_SECRET.
+ */
+export async function signUnsubscribeToken(email: string): Promise<string> {
+  return signToken(email, 60 * 60 * 24 * 365);
+}
+
 export async function setSessionCookie(email: string): Promise<void> {
   const token = await signToken(email);
   cookies().set(SESSION_COOKIE, token, {

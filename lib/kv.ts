@@ -193,3 +193,116 @@ export async function deleteTrade(id: string): Promise<boolean> {
     return false;
   }
 }
+
+// ---- Newsletter subscribers (local fallback to Resend audience) ----
+
+const SUBSCRIBERS_SET = "newsletter:subscribers";
+const BRIEF_SENT_PREFIX = "newsletter:sent:";
+
+/**
+ * Add an email to the newsletter subscribers set. Idempotent.
+ * Returns false if KV isn't provisioned.
+ */
+export async function addSubscriber(email: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    await kv.sadd(SUBSCRIBERS_SET, email.toLowerCase());
+    return true;
+  } catch (err) {
+    console.warn("[kv] addSubscriber fail:", err);
+    return false;
+  }
+}
+
+export async function listSubscribers(): Promise<string[]> {
+  const kv = await getKv();
+  if (!kv) return [];
+  try {
+    const members = await kv.smembers(SUBSCRIBERS_SET);
+    return (members ?? []).map((m) => String(m));
+  } catch (err) {
+    console.warn("[kv] listSubscribers fail:", err);
+    return [];
+  }
+}
+
+export async function removeSubscriber(email: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    await kv.srem(SUBSCRIBERS_SET, email.toLowerCase());
+    return true;
+  } catch (err) {
+    console.warn("[kv] removeSubscriber fail:", err);
+    return false;
+  }
+}
+
+/**
+ * Has this brief already been emailed? Used for cron idempotency so the
+ * same brief doesn't get sent twice on a retry.
+ */
+export async function wasBriefSent(slug: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    const key = `${BRIEF_SENT_PREFIX}${slug}`;
+    const existing = await kv.get(key);
+    return existing !== null && existing !== undefined;
+  } catch (err) {
+    console.warn("[kv] wasBriefSent fail:", err);
+    return false;
+  }
+}
+
+export async function markBriefSent(slug: string, count: number): Promise<void> {
+  const kv = await getKv();
+  if (!kv) return;
+  try {
+    const key = `${BRIEF_SENT_PREFIX}${slug}`;
+    await kv.set(
+      key,
+      { sentAt: new Date().toISOString(), recipients: count },
+      // Keep marker for 60 days so reruns from old caches are still blocked.
+      { ex: 60 * 24 * 60 * 60 }
+    );
+  } catch (err) {
+    console.warn("[kv] markBriefSent fail:", err);
+  }
+}
+
+// ---- Rate limiting (token bucket via counter + TTL) ----
+
+/**
+ * Fixed-window rate limiter. Allows up to `limit` requests per `windowSec`
+ * seconds for the given key. Returns `{ ok: false }` once exceeded.
+ *
+ * Fails open (returns ok=true) if KV isn't available — we don't want to
+ * hard-block public routes just because KV isn't provisioned yet.
+ */
+export async function rateLimit(
+  key: string,
+  limit: number,
+  windowSec: number
+): Promise<{ ok: boolean; remaining: number; resetIn: number }> {
+  const kv = await getKv();
+  if (!kv) {
+    return { ok: true, remaining: limit, resetIn: windowSec };
+  }
+  try {
+    const fullKey = `ratelimit:${key}`;
+    const count = await kv.incr(fullKey);
+    if (count === 1) {
+      await kv.expire(fullKey, windowSec);
+    }
+    if (count > limit) {
+      const ttl = await kv.ttl(fullKey);
+      return { ok: false, remaining: 0, resetIn: ttl > 0 ? ttl : windowSec };
+    }
+    return { ok: true, remaining: Math.max(0, limit - count), resetIn: windowSec };
+  } catch (err) {
+    console.warn("[kv] rateLimit fail:", err);
+    return { ok: true, remaining: limit, resetIn: windowSec };
+  }
+}

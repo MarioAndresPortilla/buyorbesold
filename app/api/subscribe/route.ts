@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { addSubscriber } from "@/lib/kv";
+import { LIMITS, enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -31,6 +33,21 @@ const welcomeHtml = (siteUrl: string) => `
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rl = await enforceRateLimit(`subscribe:${ip}`, LIMITS.subscribe);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many sign-ups from this address. Try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rl.resetIn),
+            "X-RateLimit-Remaining": String(rl.remaining),
+          },
+        }
+      );
+    }
+
     const body = (await req.json().catch(() => ({}))) as { email?: string };
     const email = (body.email ?? "").trim().toLowerCase();
     if (!email || !EMAIL_RE.test(email)) {
@@ -45,6 +62,12 @@ export async function POST(req: Request) {
     const audienceId = process.env.RESEND_AUDIENCE_ID;
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.com";
+
+    // Persist to our own subscriber store (fallback to Resend audience).
+    // Fire-and-forget — if KV isn't up, we just rely on Resend.
+    addSubscriber(email).catch((err) =>
+      console.warn("[/api/subscribe] kv subscribe warn:", err)
+    );
 
     if (!apiKey) {
       console.warn("[/api/subscribe] RESEND_API_KEY not set — skipping send");

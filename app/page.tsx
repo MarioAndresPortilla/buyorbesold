@@ -186,6 +186,14 @@ export default async function HomePage() {
               RSS
             </a>
           </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link href="/legal/privacy" className="hover:text-[color:var(--accent)]">
+              Privacy
+            </Link>
+            <Link href="/legal/terms" className="hover:text-[color:var(--accent)]">
+              Terms
+            </Link>
+          </div>
           <div>
             Not financial advice. Do your own research. ©{" "}
             {new Date().getFullYear()} BuyOrBeSold.com

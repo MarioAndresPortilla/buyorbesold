@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { runScanner } from "@/lib/scanner";
 import { recordDigestRequest } from "@/lib/kv";
+import { LIMITS, enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { ScannerResult, SetupCandidate } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -80,6 +81,15 @@ function renderDigestHtml(scan: ScannerResult): string {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rl = await enforceRateLimit(`digest:${ip}`, LIMITS.digest);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many digest requests from this address." },
+        { status: 429, headers: { "Retry-After": String(rl.resetIn) } }
+      );
+    }
+
     const body = (await req.json().catch(() => ({}))) as { email?: string };
     const email = (body.email ?? "").trim().toLowerCase();
     if (!email || !EMAIL_RE.test(email)) {
