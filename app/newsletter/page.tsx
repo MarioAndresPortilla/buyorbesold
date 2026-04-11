@@ -22,6 +22,9 @@ export default function NewsletterPage() {
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
               Dash<span className="hidden xs:inline">board</span>
             </Link>
+            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
+              Scanner
+            </Link>
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
               Briefs
             </Link>

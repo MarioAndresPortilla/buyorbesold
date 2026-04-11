@@ -22,7 +22,10 @@ export default function BriefingsIndexPage() {
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
               Dash<span className="hidden xs:inline">board</span>
             </Link>
-            <Link href="/newsletter" className="hover:text-[color:var(--accent)]">
+            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
+              Scanner
+            </Link>
+            <Link href="/newsletter" className="hidden hover:text-[color:var(--accent)] xs:inline">
               Newsletter
             </Link>
           </nav>

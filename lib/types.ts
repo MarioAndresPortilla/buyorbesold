@@ -59,3 +59,46 @@ export interface Brief {
   take: string;
   tags: string[];
 }
+
+export interface SetupCandidate {
+  symbol: string;
+  name?: string;
+  price: number;
+  changePct: number;
+  volume: number;
+  avgVol10d: number;
+  rvol: number;
+  float?: number;
+  marketCap?: number;
+  sma50?: number;
+  sma200?: number;
+  /** Absolute % distance from the nearest qualifying MA (50 or 200). */
+  smaDistance?: number;
+  /** Which MA the price is bouncing from. */
+  smaBounce?: "SMA50" | "SMA200" | "BOTH" | null;
+  score: number;
+  /** Reasons this survived the filter — used as UI chips. */
+  tags: string[];
+}
+
+export interface ScannerResult {
+  topLongs: SetupCandidate[];
+  topShorts: SetupCandidate[];
+  scannedAt: string;
+  /** How many tickers were inspected before filtering. */
+  candidateCount: number;
+  /** How many passed the criteria. */
+  qualifiedCount: number;
+  /** True when FINNHUB_API_KEY is missing; scanner runs in a degraded mode. */
+  degraded: boolean;
+  /** Human-readable status or warnings (rate limits, missing data, etc). */
+  notes: string[];
+  /** The criteria that were applied — displayed in the UI so viewers know the rules. */
+  criteria: {
+    priceMin: number;
+    priceMax: number;
+    maxFloat: number;
+    minRvol: number;
+    smaBouncePct: number;
+  };
+}

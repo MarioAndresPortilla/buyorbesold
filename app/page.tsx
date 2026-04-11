@@ -38,8 +38,10 @@ export default async function HomePage() {
           </Link>
           <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
             <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dash
-              <span className="hidden xs:inline">board</span>
+              Dash<span className="hidden xs:inline">board</span>
+            </Link>
+            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
+              Scanner
             </Link>
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
               Briefs
@@ -164,7 +166,13 @@ export default async function HomePage() {
         </section>
 
         <footer className="flex flex-col items-center gap-2 border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
+              Dashboard
+            </Link>
+            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
+              Scanner
+            </Link>
             <Link href="/briefings" className="hover:text-[color:var(--accent)]">
               Briefings
             </Link>
