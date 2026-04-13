@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
+import NotificationBell from "./NotificationBell";
 
 interface SiteNavProps {
   maxWidth?: string;
@@ -28,6 +29,8 @@ export default async function SiteNav({
     ...(user
       ? [{ href: "/my-journal", label: "My Journal", short: "Mine" }]
       : [{ href: "/journal", label: "Journal" }]),
+    { href: "/rankings", label: "Rankings", short: "Rank", hideBelow: "xs" as const },
+    { href: "/feed", label: "Feed", hideBelow: "sm" as const },
     { href: "/briefings", label: "Briefs", hideBelow: "xs" as const },
   ];
 
@@ -82,6 +85,7 @@ export default async function SiteNav({
               Sign up
             </Link>
           )}
+          {!links && user && <NotificationBell />}
           {trailing}
         </nav>
       </div>

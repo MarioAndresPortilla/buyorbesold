@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import KeyboardNav from "./KeyboardNav";
 
 // ─── Types ───
 
@@ -177,6 +178,10 @@ export default function TradeFeed() {
   );
 
   return (
+    <KeyboardNav
+      rowCount={trades.length}
+      onEnter={(i) => `/trader/${trades[i]?.username}`}
+    >
     <div className="w-full">
       {/* ── Filter Bar ── */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--border)] pb-3 mb-4">
@@ -404,5 +409,6 @@ export default function TradeFeed() {
         Past performance is not indicative of future results. Not financial advice.
       </p>
     </div>
+    </KeyboardNav>
   );
 }

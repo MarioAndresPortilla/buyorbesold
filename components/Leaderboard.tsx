@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Sparkline from "./Sparkline";
+import KeyboardNav from "./KeyboardNav";
 
 // ─── Types (mirror API response shape) ───
 
@@ -153,6 +154,10 @@ export default function Leaderboard() {
   }, [fetchRankings]);
 
   return (
+    <KeyboardNav
+      rowCount={rankings.length}
+      onEnter={(i) => `/trader/${rankings[i]?.username}`}
+    >
     <div className="w-full">
       {/* ── Filter Bar ── */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--border)] pb-3 mb-4">
@@ -387,5 +392,6 @@ export default function Leaderboard() {
         Rankings use Wilson confidence-adjusted win rates and require minimum trade counts.
       </p>
     </div>
+    </KeyboardNav>
   );
 }
