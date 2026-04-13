@@ -34,7 +34,7 @@ export default function HomeLoading() {
           </div>
         </section>
 
-        {/* Brief + Fear & Greed */}
+        {/* Brief + Fear & Greed (dual) */}
         <section className="grid gap-5 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
             <Shimmer className="h-4 w-24" />
@@ -42,9 +42,12 @@ export default function HomeLoading() {
             <Shimmer className="mt-4 h-3 w-full" />
             <Shimmer className="mt-2 h-3 w-5/6" />
           </div>
-          <div className="flex flex-col items-center justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-            <Shimmer className="mb-3 h-3 w-24" />
-            <SkeletonGauge size={200} />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+            <Shimmer className="h-3 w-36" />
+            <SkeletonGauge size={160} />
+            <Shimmer className="h-px w-full" />
+            <Shimmer className="h-3 w-28" />
+            <SkeletonGauge size={160} />
           </div>
         </section>
       </main>

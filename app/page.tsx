@@ -107,21 +107,37 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Brief + Fear & Greed */}
+        {/* Brief + Fear & Greed (dual) */}
         <section className="grid gap-5 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <DailyBrief brief={brief} market={market} />
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
-              Fear &amp; Greed
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+            <div className="flex w-full flex-col items-center gap-2">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                Stock Market Fear &amp; Greed
+              </div>
+              <FearGreedGauge
+                score={market.fearGreed.stock.score}
+                label={market.fearGreed.stock.label}
+                stale={market.fearGreed.stock.stale}
+                maxSize={200}
+                compact
+              />
             </div>
-            <FearGreedGauge
-              score={market.fearGreed.score}
-              label={market.fearGreed.label}
-              maxSize={220}
-              compact
-            />
+            <div className="h-px w-full bg-[color:var(--border)]" />
+            <div className="flex w-full flex-col items-center gap-2">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                Crypto Fear &amp; Greed
+              </div>
+              <FearGreedGauge
+                score={market.fearGreed.crypto.score}
+                label={market.fearGreed.crypto.label}
+                stale={market.fearGreed.crypto.stale}
+                maxSize={200}
+                compact
+              />
+            </div>
           </div>
         </section>
 

@@ -83,10 +83,17 @@ function renderBriefEmail(
     },
   ]);
 
-  const fngColor =
-    market.fearGreed.score < 25
+  const stockFngColor =
+    market.fearGreed.stock.score < 25
       ? EMAIL_COLORS.down
-      : market.fearGreed.score < 55
+      : market.fearGreed.stock.score < 55
+        ? EMAIL_COLORS.accent
+        : EMAIL_COLORS.up;
+
+  const cryptoFngColor =
+    market.fearGreed.crypto.score < 25
+      ? EMAIL_COLORS.down
+      : market.fearGreed.crypto.score < 55
         ? EMAIL_COLORS.accent
         : EMAIL_COLORS.up;
 
@@ -119,7 +126,7 @@ function renderBriefEmail(
       </p>
     </div>
 
-    <!-- Fear & Greed -->
+    <!-- Fear & Greed (dual) -->
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;">
       <tr>
         <td style="padding:12px 14px;border:1px solid ${EMAIL_COLORS.border};border-radius:8px;background:rgba(0,0,0,0.2);">
@@ -127,15 +134,37 @@ function renderBriefEmail(
             <tr>
               <td>
                 <div style="font-family:monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:${EMAIL_COLORS.muted};">
-                  Fear &amp; Greed Index
+                  Stock Market Fear &amp; Greed
                 </div>
                 <div style="font-size:14px;color:${EMAIL_COLORS.text};margin-top:2px;">
-                  ${escape(market.fearGreed.label)}
+                  ${escape(market.fearGreed.stock.label)}
                 </div>
               </td>
               <td align="right">
-                <div style="font-family:'Bebas Neue',Impact,sans-serif;font-size:32px;line-height:1;color:${fngColor};">
-                  ${market.fearGreed.score}
+                <div style="font-family:'Bebas Neue',Impact,sans-serif;font-size:32px;line-height:1;color:${stockFngColor};">
+                  ${market.fearGreed.stock.score}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td style="height:8px;"></td></tr>
+      <tr>
+        <td style="padding:12px 14px;border:1px solid ${EMAIL_COLORS.border};border-radius:8px;background:rgba(0,0,0,0.2);">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td>
+                <div style="font-family:monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:${EMAIL_COLORS.muted};">
+                  Crypto Fear &amp; Greed
+                </div>
+                <div style="font-size:14px;color:${EMAIL_COLORS.text};margin-top:2px;">
+                  ${escape(market.fearGreed.crypto.label)}
+                </div>
+              </td>
+              <td align="right">
+                <div style="font-family:'Bebas Neue',Impact,sans-serif;font-size:32px;line-height:1;color:${cryptoFngColor};">
+                  ${market.fearGreed.crypto.score}
                 </div>
               </td>
             </tr>

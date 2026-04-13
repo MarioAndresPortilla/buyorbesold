@@ -10,7 +10,7 @@ export default function DashboardLoading() {
       <div className="h-10 w-full animate-pulse border-y border-[color:var(--border)] bg-[#0a0a0a]" />
 
       <main className="mx-auto max-w-[1400px] space-y-6 px-4 py-6">
-        {/* Brief + Fear & Greed */}
+        {/* Brief + Fear & Greed (dual) */}
         <section className="grid gap-5 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
             <Shimmer className="h-4 w-24" />
@@ -19,9 +19,12 @@ export default function DashboardLoading() {
             <Shimmer className="mt-2 h-3 w-5/6" />
             <Shimmer className="mt-6 h-24 w-full rounded-lg" />
           </div>
-          <div className="flex flex-col items-center justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-            <Shimmer className="mb-3 h-3 w-32" />
-            <SkeletonGauge />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+            <Shimmer className="h-3 w-36" />
+            <SkeletonGauge size={180} />
+            <Shimmer className="h-px w-full" />
+            <Shimmer className="h-3 w-28" />
+            <SkeletonGauge size={180} />
           </div>
         </section>
 

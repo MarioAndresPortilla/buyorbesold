@@ -14,6 +14,15 @@ export interface Ticker {
 export interface FearGreed {
   score: number;
   label: string;
+  /** True when the value is a fallback due to API failure. */
+  stale?: boolean;
+}
+
+export interface DualFearGreed {
+  /** CNN Fear & Greed Index (stock market). */
+  stock: FearGreed;
+  /** alternative.me Crypto Fear & Greed Index. */
+  crypto: FearGreed;
 }
 
 export interface MarketData {
@@ -32,7 +41,7 @@ export interface MarketData {
   dxy: Ticker;
   tnx: Ticker;
   sectors: Sector[];
-  fearGreed: FearGreed;
+  fearGreed: DualFearGreed;
   updatedAt: string;
 }
 

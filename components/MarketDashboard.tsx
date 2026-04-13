@@ -158,16 +158,36 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
       )}
 
       <main className="mx-auto max-w-[1400px] space-y-6 px-4 py-6">
-        {/* Row 1: Brief + Fear & Greed */}
+        {/* Row 1: Brief + Fear & Greed (dual) */}
         <section className="grid gap-5 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <DailyBrief brief={brief} market={data} />
           </div>
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
-              Fear &amp; Greed Index
+          <div className="flex flex-col items-center justify-center gap-5 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
+            <div className="flex w-full flex-col items-center gap-2">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                Stock Market Fear &amp; Greed
+              </div>
+              <FearGreedGauge
+                score={data.fearGreed.stock.score}
+                label={data.fearGreed.stock.label}
+                stale={data.fearGreed.stock.stale}
+                maxSize={220}
+              />
             </div>
-            <FearGreedGauge score={data.fearGreed.score} label={data.fearGreed.label} />
+            <div className="h-px w-full bg-[color:var(--border)]" />
+            <div className="flex w-full flex-col items-center gap-2">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                Crypto Fear &amp; Greed
+              </div>
+              <FearGreedGauge
+                score={data.fearGreed.crypto.score}
+                label={data.fearGreed.crypto.label}
+                stale={data.fearGreed.crypto.stale}
+                maxSize={220}
+                compact
+              />
+            </div>
           </div>
         </section>
 

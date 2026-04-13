@@ -8,6 +8,8 @@ interface FearGreedGaugeProps {
   /** Max rendered width in px. Gauge shrinks to fit narrower containers. */
   maxSize?: number;
   compact?: boolean;
+  /** True when the score is a fallback due to API failure. */
+  stale?: boolean;
 }
 
 const SEGMENTS: Array<{ start: number; end: number; color: string; title: string }> = [
@@ -23,6 +25,7 @@ export default function FearGreedGauge({
   label,
   maxSize = 260,
   compact = false,
+  stale = false,
 }: FearGreedGaugeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -107,12 +110,17 @@ export default function FearGreedGauge({
         aria-label={`Fear & Greed Index: ${score} (${label})`}
       />
       <div className="flex flex-col items-center">
-        <div className="font-bebas text-5xl leading-none tracking-wider text-[color:var(--text)]">
+        <div className={`font-bebas text-5xl leading-none tracking-wider ${stale ? "text-[color:var(--muted)] opacity-50" : "text-[color:var(--text)]"}`}>
           {score}
         </div>
         <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
           {label}
         </div>
+        {stale && (
+          <div className="mt-1 font-mono text-[9px] uppercase tracking-wider text-amber-400/80">
+            API unavailable — showing fallback
+          </div>
+        )}
       </div>
       {!compact && (
         <div className="mt-2 flex w-full items-center justify-between gap-1 font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">

@@ -1,4 +1,4 @@
-import type { FearGreed, MarketData, Sector, Ticker } from "./types";
+import type { DualFearGreed, FearGreed, MarketData, Sector, Ticker } from "./types";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
@@ -144,16 +144,64 @@ type FngResponse = {
   data?: Array<{ value?: string; value_classification?: string }>;
 };
 
-export async function fetchFearGreed(): Promise<FearGreed> {
+/** Crypto Fear & Greed Index from alternative.me (BTC-focused). */
+export async function fetchCryptoFearGreed(): Promise<FearGreed> {
   try {
     const json = await fetchJson<FngResponse>(`${FNG_BASE}/?limit=1`);
     const entry = json.data?.[0];
-    const score = entry?.value ? parseInt(entry.value, 10) : 50;
+    const score = entry?.value ? parseInt(entry.value, 10) : NaN;
     const label = entry?.value_classification ?? "Neutral";
-    return { score: Number.isFinite(score) ? score : 50, label };
+    if (!Number.isFinite(score)) return { score: 50, label: "Neutral", stale: true };
+    return { score, label };
   } catch {
-    return { score: 50, label: "Neutral" };
+    return { score: 50, label: "Neutral", stale: true };
   }
+}
+
+type CnnFngResponse = {
+  fear_and_greed?: {
+    score?: number;
+    rating?: string;
+  };
+};
+
+/** CNN Fear & Greed Index (stock market — VIX, put/call, junk bond demand, etc.). */
+export async function fetchStockFearGreed(): Promise<FearGreed> {
+  try {
+    const res = await fetch(
+      "https://production.dataviz.cnn.io/index/fearandgreed/graphdata",
+      {
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "*/*",
+          Referer: "https://www.cnn.com/markets/fear-and-greed",
+        },
+        next: { revalidate: 60 },
+      }
+    );
+    if (!res.ok) throw new Error(`CNN FNG ${res.status}`);
+    const json = (await res.json()) as CnnFngResponse;
+    const raw = json.fear_and_greed?.score;
+    const rating = json.fear_and_greed?.rating ?? "Neutral";
+    if (raw == null || !Number.isFinite(raw)) {
+      return { score: 50, label: "Neutral", stale: true };
+    }
+    const score = Math.round(raw);
+    // CNN returns lowercase — capitalize first letter of each word.
+    const label = rating.replace(/\b\w/g, (c) => c.toUpperCase());
+    return { score, label };
+  } catch {
+    return { score: 50, label: "Neutral", stale: true };
+  }
+}
+
+/** Fetch both Fear & Greed indexes in parallel. */
+export async function fetchFearGreed(): Promise<DualFearGreed> {
+  const [stock, crypto] = await Promise.all([
+    fetchStockFearGreed(),
+    fetchCryptoFearGreed(),
+  ]);
+  return { stock, crypto };
 }
 
 // Placeholder used when a fetch fails — keeps the dashboard from crashing.

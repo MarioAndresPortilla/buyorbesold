@@ -52,7 +52,8 @@ function buildMarketContext(market: MarketData): string {
     `Natural Gas: ${formatPrice(market.natgas.price)} (${formatPct(market.natgas.changePct)})`,
     `DXY: ${market.dxy.price.toFixed(3)} (${formatPct(market.dxy.changePct)})`,
     `10Y Yield: ${market.tnx.price.toFixed(3)}% (${formatPct(market.tnx.changePct)})`,
-    `Fear & Greed Index: ${market.fearGreed.score} (${market.fearGreed.label})`,
+    `Stock Market Fear & Greed (CNN): ${market.fearGreed.stock.score} (${market.fearGreed.stock.label})`,
+    `Crypto Fear & Greed: ${market.fearGreed.crypto.score} (${market.fearGreed.crypto.label})`,
     "",
     "Sector performance:",
     ...market.sectors.map(
