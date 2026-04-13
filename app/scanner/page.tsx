@@ -116,41 +116,6 @@ export default async function ScannerPage({ searchParams }: PageProps) {
           <WatchlistPanel entries={watchlist} />
         )}
 
-        {/* Methodology */}
-        <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
-          <h3 className="font-bebas text-xl tracking-wide">How the scanner works</h3>
-          <ol className="mt-3 space-y-1.5 text-[13px] leading-relaxed text-[color:var(--muted)]">
-            <li>
-              1. Pulls the Yahoo most-actives, day-gainers, and day-losers screens
-              ({scan.candidateCount} tickers today).
-            </li>
-            <li>
-              2. Filters to price ${scan.criteria.priceMin}–${scan.criteria.priceMax}, caps at
-              the 30 highest-momentum survivors (|change| × log(volume)).
-            </li>
-            <li>
-              3. Fetches 1 year of daily bars from Yahoo, computes SMA-50, SMA-200, and 10-day
-              average volume for RVOL.
-            </li>
-            <li>
-              4. Queries Finnhub for float on each survivor (requires FINNHUB_API_KEY).
-            </li>
-            <li>
-              5. Keeps only stocks bouncing within {(scan.criteria.smaBouncePct * 100).toFixed(0)}%
-              of the 50 or 200 SMA, with RVOL ≥ {scan.criteria.minRvol}x, and float under{" "}
-              {(scan.criteria.maxFloat / 1e6).toFixed(0)}M.
-            </li>
-            <li>
-              6. Scores by {"{setup match, RVOL strength, float size, |day change|}"} and returns
-              the top 3 longs and shorts.
-            </li>
-          </ol>
-          <p className="mt-4 text-[11px] italic text-[color:var(--muted)]">
-            Not financial advice. Do your own research. This is a pattern scanner, not a trade
-            recommendation.
-          </p>
-        </section>
-
         <SiteFooter sub="Cached 5 min · Data: Yahoo Finance, Finnhub · Not financial advice." />
       </main>
     </div>
