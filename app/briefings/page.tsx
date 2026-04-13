@@ -7,11 +7,12 @@ export const metadata = {
 };
 
 interface PageProps {
-  searchParams: { tag?: string };
+  searchParams: Promise<{ tag?: string }>;
 }
 
-export default function BriefingsIndexPage({ searchParams }: PageProps) {
-  const selectedTag = searchParams.tag?.toLowerCase();
+export default async function BriefingsIndexPage({ searchParams }: PageProps) {
+  const { tag } = await searchParams;
+  const selectedTag = tag?.toLowerCase();
   const allBriefs = getBriefs();
   const briefs = selectedTag
     ? allBriefs.filter((b) => b.tags.map((t) => t.toLowerCase()).includes(selectedTag))
@@ -84,6 +85,11 @@ export default function BriefingsIndexPage({ searchParams }: PageProps) {
                 <Link href={`/briefings/${b.slug}`} className="group block">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
                     <span className="text-[color:var(--accent)]">{b.date}</span>
+                    {b.type && b.type !== "brief" && (
+                      <span className="rounded border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-1.5 py-0.5 font-bold tracking-wider text-[color:var(--accent)]">
+                        {b.type}
+                      </span>
+                    )}
                     {b.tags.map((tag) => (
                       <span key={tag} className="before:mr-2 before:content-['\\00b7']">
                         {tag}

@@ -87,6 +87,7 @@ export async function POST(req: Request) {
 
     const { error } = await resend.emails.send({
       from,
+      replyTo: "support@bluemintstudios.com",
       to: email,
       subject: "You're in. The brief hits tomorrow morning.",
       html: welcomeHtml(siteUrl),

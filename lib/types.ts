@@ -51,6 +51,60 @@ export interface MacroEvent {
   impact: "HIGH" | "MED" | "LOW";
 }
 
+export type BriefType = "brief" | "earnings" | "event" | "setup" | "macro";
+
+/**
+ * Frontmatter fields specific to `type: earnings` briefs.
+ * All fields are optional — the parser in lib/briefs.ts dumps whatever is
+ * present in frontmatter into `meta`, and the [slug] page renders a card
+ * from whatever fields are defined.
+ */
+export interface EarningsMeta {
+  ticker?: string;
+  quarter?: string;
+  epsActual?: number;
+  epsEst?: number;
+  revActual?: number;
+  revEst?: number;
+  keyLevels?: number[];
+}
+
+/** Frontmatter for `type: event` briefs (CPI, FOMC, NFP, PCE, ISM, etc.). */
+export interface EventMeta {
+  event?: string;
+  consensus?: string;
+  actual?: string;
+}
+
+/** Frontmatter for `type: setup` briefs (Sunday Setup of the Week). */
+export interface SetupMeta {
+  symbol?: string;
+  catalyst?: string;
+  entry?: number;
+  stop?: number;
+  target?: number;
+  rMultiple?: number;
+}
+
+/** Frontmatter for `type: macro` briefs (twice-monthly deep macro pieces). */
+export interface MacroMeta {
+  chart?: string;
+  dataAsOf?: string;
+}
+
+/**
+ * Type-specific structured metadata from brief frontmatter. The parser in
+ * lib/briefs.ts dumps anything that isn't a reserved key (title, date,
+ * summary, tags, type) into this object, so new fields can be added without
+ * touching the parser. Render-time code narrows by `brief.type`.
+ */
+export type BriefMeta =
+  | EarningsMeta
+  | EventMeta
+  | SetupMeta
+  | MacroMeta
+  | Record<string, unknown>;
+
 export interface Brief {
   slug: string;
   date: string;
@@ -58,6 +112,10 @@ export interface Brief {
   summary: string;
   take: string;
   tags: string[];
+  /** Content type. Absence defaults to "brief" for backward compatibility. */
+  type?: BriefType;
+  /** Type-specific structured fields from frontmatter. */
+  meta?: BriefMeta;
 }
 
 export interface NewsItem {

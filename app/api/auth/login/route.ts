@@ -101,6 +101,7 @@ export async function POST(req: Request) {
     const resend = new Resend(resendKey);
     const { error } = await resend.emails.send({
       from,
+      replyTo: "support@bluemintstudios.com",
       to: email,
       subject: "Your sign-in link — BuyOrBeSold",
       html: magicEmailHtml(link),

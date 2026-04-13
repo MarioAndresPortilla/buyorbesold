@@ -120,6 +120,7 @@ export async function POST(req: Request) {
 
     const { error } = await resend.emails.send({
       from,
+      replyTo: "support@bluemintstudios.com",
       to: email,
       subject: `Scanner digest · ${scan.topLongs.length + scan.topShorts.length} setups today`,
       html: renderDigestHtml(scan),

@@ -82,7 +82,7 @@ export async function signUnsubscribeToken(email: string): Promise<string> {
 
 export async function setSessionCookie(email: string): Promise<void> {
   const token = await signToken(email);
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -91,8 +91,8 @@ export async function setSessionCookie(email: string): Promise<void> {
   });
 }
 
-export function clearSessionCookie(): void {
-  cookies().set(SESSION_COOKIE, "", {
+export async function clearSessionCookie(): Promise<void> {
+  (await cookies()).set(SESSION_COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -103,7 +103,7 @@ export function clearSessionCookie(): void {
 
 export async function getSession(): Promise<SessionClaims | null> {
   if (!isAuthConfigured()) return null;
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifyToken(token);
 }

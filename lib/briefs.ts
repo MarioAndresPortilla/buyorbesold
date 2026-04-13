@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import matter from "gray-matter";
-import type { Brief } from "./types";
+import type { Brief, BriefMeta, BriefType } from "./types";
 
 /**
  * Briefs live as Markdown files under `content/briefings/*.md`.
@@ -12,6 +12,11 @@ import type { Brief } from "./types";
  *   date:  YYYY-MM-DD (required)
  *   summary: string (required, 1–2 sentences)
  *   tags: [string] (optional)
+ *   type: brief | earnings | event | setup | macro (optional, defaults to "brief")
+ *   # Any additional frontmatter fields are dumped into `meta` — used by
+ *   # typed briefs (earnings: ticker/epsActual/epsEst/revActual/revEst,
+ *   # event: consensus/actual, setup: entry/stop/target, …) without the
+ *   # parser needing to know each type's schema.
  *   ---
  *
  * Body content becomes the "take" — Mario's voice, his call, his reasoning.
@@ -19,9 +24,24 @@ import type { Brief } from "./types";
  *
  * Parsed eagerly at module load and cached in-process. Next.js will re-run
  * this module on each deploy, so new markdown files show up after `git push`.
+ *
+ * Files whose name starts with `_` (and the entire `_drafts/` subfolder via
+ * its top-level directory entry) are ignored so Mario can keep Claude-drafted
+ * markdown alongside published briefs without it leaking to production.
  */
 
 const BRIEFS_DIR = join(process.cwd(), "content", "briefings");
+
+const VALID_TYPES: readonly BriefType[] = [
+  "brief",
+  "earnings",
+  "event",
+  "setup",
+  "macro",
+];
+
+// Reserved frontmatter keys that don't flow into `meta`.
+const RESERVED_KEYS = new Set(["title", "date", "summary", "tags", "type"]);
 
 let cached: Brief[] | null = null;
 
@@ -46,6 +66,28 @@ function parseFile(filename: string): Brief | null {
           .filter(Boolean)
       : [];
 
+    // Default to "brief" when `type` is missing or invalid — backward compat
+    // so existing hand-written briefs continue to parse unchanged.
+    const rawType =
+      typeof data.type === "string" ? data.type.trim().toLowerCase() : "";
+    const type: BriefType = (VALID_TYPES as readonly string[]).includes(rawType)
+      ? (rawType as BriefType)
+      : "brief";
+
+    // Everything in frontmatter that isn't a reserved key becomes `meta`.
+    // Lets earnings/event/setup briefs carry structured fields (ticker,
+    // epsActual, consensus, entry, stop, …) without the parser caring.
+    const metaEntries: [string, unknown][] = [];
+    for (const [k, v] of Object.entries(data)) {
+      if (RESERVED_KEYS.has(k)) continue;
+      if (v === undefined || v === null) continue;
+      metaEntries.push([k, v instanceof Date ? v.toISOString() : v]);
+    }
+    const meta: BriefMeta | undefined =
+      metaEntries.length > 0
+        ? (Object.fromEntries(metaEntries) as BriefMeta)
+        : undefined;
+
     if (!title || !date || !summary || !take) {
       console.warn(`[briefs] skipping ${filename}: missing required frontmatter`);
       return null;
@@ -58,6 +100,8 @@ function parseFile(filename: string): Brief | null {
       summary,
       take,
       tags,
+      type,
+      meta,
     };
   } catch (err) {
     console.warn(`[briefs] parse fail ${filename}:`, err);
@@ -69,7 +113,11 @@ function loadAll(): Brief[] {
   if (cached) return cached;
   let files: string[] = [];
   try {
-    files = readdirSync(BRIEFS_DIR).filter((f) => f.endsWith(".md"));
+    // Skip anything whose name starts with `_` — covers the `_drafts/`
+    // subdirectory entry and any loose `_draft-foo.md` file Mario drops in.
+    files = readdirSync(BRIEFS_DIR).filter(
+      (f) => f.endsWith(".md") && !f.startsWith("_")
+    );
   } catch (err) {
     console.warn("[briefs] content/briefings not readable:", err);
     files = [];
@@ -90,6 +138,14 @@ export function getBriefs(): Brief[] {
   return [...loadAll()];
 }
 
+/**
+ * Return only briefs of a specific type. Briefs without an explicit `type`
+ * frontmatter field are treated as `"brief"` (backward compatibility).
+ */
+export function getBriefsByType(type: BriefType): Brief[] {
+  return loadAll().filter((b) => (b.type ?? "brief") === type);
+}
+
 export function getLatestBrief(): Brief {
   const all = loadAll();
   if (all.length === 0) {
@@ -101,6 +157,7 @@ export function getLatestBrief(): Brief {
       summary: "Check back soon — the first brief drops shortly.",
       take: "This is a placeholder that appears when no markdown briefs are present in content/briefings/.",
       tags: [],
+      type: "brief",
     };
   }
   return all[0];

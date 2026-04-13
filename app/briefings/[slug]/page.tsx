@@ -8,15 +8,16 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export function generateStaticParams() {
   return BRIEFS.map((b) => ({ slug: b.slug }));
 }
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  const brief = getBriefBySlug(params.slug);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const brief = getBriefBySlug(slug);
   if (!brief) return { title: "Brief not found" };
   const url = `${SITE_URL}/briefings/${brief.slug}`;
   return {
@@ -40,8 +41,9 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
-export default function BriefPage({ params }: PageProps) {
-  const brief = getBriefBySlug(params.slug);
+export default async function BriefPage({ params }: PageProps) {
+  const { slug } = await params;
+  const brief = getBriefBySlug(slug);
   if (!brief) notFound();
 
   const articleJsonLd = {
@@ -115,8 +117,16 @@ export default function BriefPage({ params }: PageProps) {
         </Link>
 
         <div className="mt-6">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-            {brief.date} · {brief.tags.join(" · ")}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+            <span>{brief.date}</span>
+            {brief.type && brief.type !== "brief" && (
+              <span className="rounded border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-1.5 py-0.5 font-bold tracking-wider text-[color:var(--accent)]">
+                {brief.type}
+              </span>
+            )}
+            {brief.tags.length > 0 && (
+              <span>· {brief.tags.join(" · ")}</span>
+            )}
           </div>
           <h1 className="mt-2 font-bebas text-[36px] leading-[0.95] tracking-wide text-[color:var(--text)] xs:text-5xl sm:text-6xl">
             {brief.title}
@@ -124,6 +134,9 @@ export default function BriefPage({ params }: PageProps) {
           <p className="mt-6 text-[15px] leading-relaxed text-[color:var(--muted)] xs:text-lg">
             {brief.summary}
           </p>
+          {brief.type === "earnings" && brief.meta && (
+            <EarningsMetaCard meta={brief.meta as Record<string, unknown>} />
+          )}
         </div>
 
         <div className="mt-8 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
@@ -146,6 +159,93 @@ export default function BriefPage({ params }: PageProps) {
           Not financial advice. Do your own research.
         </footer>
       </main>
+    </div>
+  );
+}
+
+/**
+ * Renders an EPS + revenue beat-or-miss card for `type: earnings` briefs.
+ * Accepts the raw `meta` object from frontmatter and safely extracts the
+ * numeric fields. Renders nothing if no earnings fields are present.
+ */
+function EarningsMetaCard({ meta }: { meta: Record<string, unknown> }) {
+  const ticker = typeof meta.ticker === "string" ? meta.ticker : null;
+  const quarter = typeof meta.quarter === "string" ? meta.quarter : null;
+  const epsActual =
+    typeof meta.epsActual === "number" ? meta.epsActual : null;
+  const epsEst = typeof meta.epsEst === "number" ? meta.epsEst : null;
+  const revActual =
+    typeof meta.revActual === "number" ? meta.revActual : null;
+  const revEst = typeof meta.revEst === "number" ? meta.revEst : null;
+
+  if (!ticker && !quarter && epsActual === null && revActual === null) {
+    return null;
+  }
+
+  const epsBeat =
+    epsActual !== null && epsEst !== null ? epsActual - epsEst : null;
+  const revBeat =
+    revActual !== null && revEst !== null ? revActual - revEst : null;
+  const fmtRev = (r: number) => `$${(r / 1e9).toFixed(2)}B`;
+
+  return (
+    <div className="mt-6 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+      {(ticker || quarter) && (
+        <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)]">
+          {ticker}
+          {quarter ? ` · ${quarter}` : ""}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
+        {epsActual !== null && (
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
+              EPS
+            </div>
+            <div className="mt-1 font-mono text-[15px] text-[color:var(--text)]">
+              {epsActual.toFixed(2)}
+              {epsEst !== null && (
+                <span className="ml-2 text-[11px] text-[color:var(--muted)]">
+                  est {epsEst.toFixed(2)}
+                </span>
+              )}
+            </div>
+            {epsBeat !== null && (
+              <div
+                className={`mt-0.5 font-mono text-[10px] uppercase tracking-wider ${
+                  epsBeat >= 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {epsBeat >= 0 ? "beat" : "miss"} {Math.abs(epsBeat).toFixed(2)}
+              </div>
+            )}
+          </div>
+        )}
+        {revActual !== null && (
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
+              Revenue
+            </div>
+            <div className="mt-1 font-mono text-[15px] text-[color:var(--text)]">
+              {fmtRev(revActual)}
+              {revEst !== null && (
+                <span className="ml-2 text-[11px] text-[color:var(--muted)]">
+                  est {fmtRev(revEst)}
+                </span>
+              )}
+            </div>
+            {revBeat !== null && (
+              <div
+                className={`mt-0.5 font-mono text-[10px] uppercase tracking-wider ${
+                  revBeat >= 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {revBeat >= 0 ? "beat" : "miss"} {fmtRev(Math.abs(revBeat))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

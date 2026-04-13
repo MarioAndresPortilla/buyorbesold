@@ -1,34 +1,36 @@
 /**
- * Thin wrapper around @vercel/kv that gracefully no-ops when KV isn't
+ * Thin wrapper around @upstash/redis that gracefully no-ops when Redis isn't
  * provisioned. Lets features like scanner archive + digest signup ship without
- * forcing the user to set up KV on day 1.
+ * forcing the user to set up Redis on day 1.
  *
- * Env required (Vercel auto-provisions these when you create a KV store):
- *   KV_REST_API_URL
- *   KV_REST_API_TOKEN
+ * Env required (Vercel auto-provisions these via the Upstash Redis integration):
+ *   KV_REST_API_URL   (or UPSTASH_REDIS_REST_URL)
+ *   KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_TOKEN)
  */
 
+import { Redis } from "@upstash/redis";
 import type { ScannerResult, Trade } from "./types";
 
 export function isKvAvailable(): boolean {
   return Boolean(
-    process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+    (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
+    (process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)
   );
 }
 
-// Lazy import so apps without KV installed still build cleanly.
-type KvClient = typeof import("@vercel/kv")["kv"];
-let _kv: KvClient | null = null;
+let _kv: Redis | null = null;
 
-async function getKv(): Promise<KvClient | null> {
+async function getKv(): Promise<Redis | null> {
   if (!isKvAvailable()) return null;
   if (_kv) return _kv;
   try {
-    const mod = await import("@vercel/kv");
-    _kv = mod.kv;
+    _kv = new Redis({
+      url: (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL)!,
+      token: (process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)!,
+    });
     return _kv;
   } catch (err) {
-    console.warn("[kv] import fail:", err);
+    console.warn("[kv] init fail:", err);
     return null;
   }
 }

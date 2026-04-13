@@ -27,16 +27,16 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: { welcome?: string };
+  searchParams: Promise<{ welcome?: string }>;
 }
 
 export default async function JournalPage({ searchParams }: PageProps) {
-  const [rawTrades, admin] = await Promise.all([listTrades(200), isAdmin()]);
+  const [rawTrades, admin, sp] = await Promise.all([listTrades(200), isAdmin(), searchParams]);
   const trades = rawTrades.map(computeTradeDerived);
   const stats = computeStats(rawTrades);
   const todayTop = getDailyTopMovers(rawTrades);
   const kvOn = isKvAvailable();
-  const welcome = searchParams.welcome === "1" && admin;
+  const welcome = sp.welcome === "1" && admin;
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">

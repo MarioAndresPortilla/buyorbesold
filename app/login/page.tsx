@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,8 +21,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   notconfigured: "Auth is not configured on this deployment.",
 };
 
-export default function LoginPage({ searchParams }: PageProps) {
-  const error = searchParams.error ? ERROR_MESSAGES[searchParams.error] : null;
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { error: errorKey } = await searchParams;
+  const error = errorKey ? ERROR_MESSAGES[errorKey] : null;
   const configured = isAuthConfigured();
 
   return (
