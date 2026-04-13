@@ -133,12 +133,38 @@ export default async function HomePage() {
           <div className="lg:col-span-2 flex flex-col justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
             <h3 className="font-bebas text-2xl tracking-wide">What you get</h3>
             <ul className="mt-3 space-y-2 font-mono text-[12px] text-[color:var(--muted)]">
-              <li>· One brief each weekday morning</li>
+              <li>· 3 AI briefs per day (9am · 12pm · 4pm)</li>
               <li>· Stocks, bullion, crypto, macro</li>
               <li>· My personal take — no fluff</li>
               <li>· Unsubscribe any time</li>
             </ul>
           </div>
+        </section>
+
+        {/* Trading journal CTA */}
+        <section>
+          <Link
+            href="/login"
+            className="group block overflow-hidden rounded-xl border border-[color:var(--border)] bg-gradient-to-r from-[color:var(--surface)] to-[color:var(--accent)]/5 p-6 transition-colors hover:border-[color:var(--accent)]"
+          >
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
+                  Free · No credit card
+                </div>
+                <h3 className="font-bebas text-3xl tracking-wide text-[color:var(--text)]">
+                  Track your own trades
+                </h3>
+                <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-[color:var(--muted)]">
+                  Private trading journal with win rate analytics, R-multiple tracking,
+                  and setup breakdowns. Sign up with just your email — no password, no forms.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.15em] text-black transition-opacity group-hover:opacity-90">
+                Start free →
+              </span>
+            </div>
+          </Link>
         </section>
 
         <SiteFooter />
