@@ -20,11 +20,13 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/login?error=invalid", req.url));
   }
 
-  const admin = getAdminEmail();
-  if (!admin || claims.sub.toLowerCase() !== admin) {
-    return NextResponse.redirect(new URL("/login?error=forbidden", req.url));
-  }
-
+  // Multi-user: any verified email gets a session. Admin status is checked
+  // separately via isAdmin() when writing to the PUBLIC journal.
   await setSessionCookie(claims.sub);
-  return NextResponse.redirect(new URL("/journal?welcome=1", req.url));
+
+  // Redirect admin to the public journal, regular users to their own.
+  const admin = getAdminEmail();
+  const isAdminUser = admin && claims.sub.toLowerCase() === admin;
+  const dest = isAdminUser ? "/journal?welcome=1" : "/my-journal?welcome=1";
+  return NextResponse.redirect(new URL(dest, req.url));
 }

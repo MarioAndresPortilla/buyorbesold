@@ -1,35 +1,37 @@
 import Link from "next/link";
+import { getUser } from "@/lib/auth";
 
 interface SiteNavProps {
-  /** Max width container class. Defaults to max-w-[1200px]. */
   maxWidth?: string;
-  /** Extra nav links to render after the defaults (e.g. page-specific). */
   extra?: Array<{ href: string; label: string; short?: string; hideBelow?: "xs" | "sm" }>;
-  /** Override which links to show in the right nav. */
   links?: Array<{ href: string; label: string; short?: string; hideBelow?: "xs" | "sm" }>;
-  /** Slot for additional right-side content (e.g. LogoutButton). */
   trailing?: React.ReactNode;
 }
 
-const DEFAULT_LINKS: Array<{
-  href: string;
-  label: string;
-  short?: string;
-  hideBelow?: "xs" | "sm";
-}> = [
-  { href: "/dashboard", label: "Dashboard", short: "Dash" },
-  { href: "/scanner", label: "Scanner" },
-  { href: "/journal", label: "Journal" },
-  { href: "/briefings", label: "Briefs", hideBelow: "xs" },
-];
-
-export default function SiteNav({
+export default async function SiteNav({
   maxWidth = "max-w-[1200px]",
   links,
   extra,
   trailing,
 }: SiteNavProps) {
-  const navLinks = links ?? DEFAULT_LINKS;
+  // When using default links, check auth and inject "My Journal" for logged-in users.
+  const user = links ? null : await getUser().catch(() => null);
+
+  const defaultLinks: Array<{
+    href: string;
+    label: string;
+    short?: string;
+    hideBelow?: "xs" | "sm";
+  }> = [
+    { href: "/dashboard", label: "Dashboard", short: "Dash" },
+    { href: "/scanner", label: "Scanner" },
+    ...(user
+      ? [{ href: "/my-journal", label: "My Journal", short: "Mine" }]
+      : [{ href: "/journal", label: "Journal" }]),
+    { href: "/briefings", label: "Briefs", hideBelow: "xs" as const },
+  ];
+
+  const navLinks = links ?? defaultLinks;
   const allLinks = extra ? [...navLinks, ...extra] : navLinks;
 
   return (
@@ -37,7 +39,6 @@ export default function SiteNav({
       <div
         className={`mx-auto flex items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4 ${maxWidth}`}
       >
-        {/* Logo */}
         <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
             B/S
@@ -47,7 +48,6 @@ export default function SiteNav({
           </span>
         </Link>
 
-        {/* Nav links */}
         <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
           {allLinks.map((link) => {
             const hide =
@@ -73,6 +73,15 @@ export default function SiteNav({
               </Link>
             );
           })}
+          {/* Show sign-up CTA for anonymous users on default nav */}
+          {!links && !user && !trailing && (
+            <Link
+              href="/login"
+              className="rounded-md border border-[color:var(--accent)]/60 bg-[color:var(--accent)]/10 px-2 py-1 text-[color:var(--accent)] hover:bg-[color:var(--accent)]/20"
+            >
+              Sign up
+            </Link>
+          )}
           {trailing}
         </nav>
       </div>

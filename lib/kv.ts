@@ -196,6 +196,77 @@ export async function deleteTrade(id: string): Promise<boolean> {
   }
 }
 
+// ---- Per-user private journals ----
+// Identical shape to the admin journal but namespaced by email hash.
+// Using a hash avoids email-as-key leakage in KV key names.
+
+function userNs(email: string): string {
+  // Simple deterministic hash — not crypto, just namespacing.
+  let h = 0;
+  for (let i = 0; i < email.length; i++) {
+    h = ((h << 5) - h + email.charCodeAt(i)) | 0;
+  }
+  return `u${Math.abs(h).toString(36)}`;
+}
+
+export async function saveUserTrade(email: string, trade: Trade): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    const ns = userNs(email);
+    await kv.set(`journal:${ns}:trade:${trade.id}`, trade);
+    const score = new Date(trade.entryDate).getTime() || Date.now();
+    await kv.zadd(`journal:${ns}:index`, { score, member: trade.id });
+    // Track active users for admin analytics later.
+    await kv.sadd("journal:users", email.toLowerCase());
+    return true;
+  } catch (err) {
+    console.warn("[kv] saveUserTrade fail:", err);
+    return false;
+  }
+}
+
+export async function getUserTrade(email: string, id: string): Promise<Trade | null> {
+  const kv = await getKv();
+  if (!kv) return null;
+  try {
+    const ns = userNs(email);
+    return (await kv.get<Trade>(`journal:${ns}:trade:${id}`)) ?? null;
+  } catch (err) {
+    console.warn("[kv] getUserTrade fail:", err);
+    return null;
+  }
+}
+
+export async function listUserTrades(email: string, limit = 200): Promise<Trade[]> {
+  const kv = await getKv();
+  if (!kv) return [];
+  try {
+    const ns = userNs(email);
+    const ids = await kv.zrange<string[]>(`journal:${ns}:index`, 0, limit - 1, { rev: true });
+    if (!ids?.length) return [];
+    const trades = await kv.mget<Trade[]>(...ids.map((id) => `journal:${ns}:trade:${id}`));
+    return trades.filter((t): t is Trade => t !== null);
+  } catch (err) {
+    console.warn("[kv] listUserTrades fail:", err);
+    return [];
+  }
+}
+
+export async function deleteUserTrade(email: string, id: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    const ns = userNs(email);
+    await kv.del(`journal:${ns}:trade:${id}`);
+    await kv.zrem(`journal:${ns}:index`, id);
+    return true;
+  } catch (err) {
+    console.warn("[kv] deleteUserTrade fail:", err);
+    return false;
+  }
+}
+
 // ---- Newsletter subscribers (local fallback to Resend audience) ----
 
 const SUBSCRIBERS_SET = "newsletter:subscribers";

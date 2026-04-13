@@ -72,13 +72,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const admin = getAdminEmail();
-    // Quietly accept any email but only send a real link if it's the admin.
-    // This avoids leaking which email is the admin to probers.
-    if (admin !== email) {
-      return NextResponse.json({ success: true });
-    }
-
+    // Multi-user: send a magic link to ANY valid email. The session JWT
+    // will carry their email as `sub`, and isAdmin() checks against
+    // ADMIN_EMAIL to gate public-journal writes. Regular users get their
+    // own private journal at /my-journal.
     const token = await signMagicLinkToken(email);
     const link = `${SITE_URL}/api/auth/callback?token=${encodeURIComponent(token)}`;
 

@@ -34,15 +34,15 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
       <main className="mx-auto max-w-[520px] px-4 py-16">
         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">
-          Admin sign-in
+          Free account
         </div>
         <h1 className="mt-3 font-bebas text-5xl leading-none tracking-wide">
-          Sign in to journal
+          Start your journal
         </h1>
         <p className="mt-3 text-[14px] leading-relaxed text-[color:var(--muted)]">
-          Only the admin email can create or edit journal entries. Everyone else
-          can view them publicly. You'll get a one-tap magic link in your inbox
-          — no password.
+          Track every trade, see your win rate, and build your edge — all free.
+          Enter your email and we'll send you a one-tap magic link. No password,
+          no signup form. Just your email.
         </p>
 
         {!configured && (

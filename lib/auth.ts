@@ -116,6 +116,30 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 /**
+ * Returns the logged-in user's email, or null if not authenticated.
+ * Works for any user, not just admin.
+ */
+export async function getUser(): Promise<string | null> {
+  const session = await getSession();
+  return session?.sub ?? null;
+}
+
+/**
+ * Throws a 401 Response if not logged in. For routes that any authenticated
+ * user can access (e.g. the user's own private journal).
+ */
+export async function requireAuth(): Promise<SessionClaims> {
+  const session = await getSession();
+  if (!session) {
+    throw new Response(JSON.stringify({ error: "not authenticated" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+  return session;
+}
+
+/**
  * Throws a Response (to be caught by the route handler) if the caller isn't
  * the admin. Use inside API routes.
  */
