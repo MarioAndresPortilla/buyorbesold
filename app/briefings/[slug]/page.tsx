@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BRIEFS, getBriefBySlug } from "@/lib/briefs";
+import { BRIEFS, getBriefBySlug, getBriefBySlugAsync } from "@/lib/briefs";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -19,7 +19,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const brief = getBriefBySlug(slug);
+  const brief = await getBriefBySlugAsync(slug);
   if (!brief) return { title: "Brief not found" };
   const url = `${SITE_URL}/briefings/${brief.slug}`;
   return {
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BriefPage({ params }: PageProps) {
   const { slug } = await params;
-  const brief = getBriefBySlug(slug);
+  const brief = await getBriefBySlugAsync(slug);
   if (!brief) notFound();
 
   const articleJsonLd = {

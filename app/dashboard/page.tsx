@@ -1,5 +1,5 @@
 import MarketDashboard from "@/components/MarketDashboard";
-import { getLatestBrief } from "@/lib/briefs";
+import { getLatestBriefAsync } from "@/lib/briefs";
 import { fetchAllMarkets } from "@/lib/markets";
 
 export const revalidate = 60;
@@ -12,7 +12,7 @@ export const metadata = {
 export default async function DashboardPage() {
   const [market, brief] = await Promise.all([
     fetchAllMarkets(),
-    Promise.resolve(getLatestBrief()),
+    getLatestBriefAsync(),
   ]);
 
   return <MarketDashboard initialData={market} brief={brief} />;

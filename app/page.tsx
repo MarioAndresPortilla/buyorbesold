@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchAllMarkets } from "@/lib/markets";
-import { getLatestBrief } from "@/lib/briefs";
+import { getLatestBriefAsync } from "@/lib/briefs";
 import { arrow, formatPct, formatPrice } from "@/lib/format";
 import DailyBrief from "@/components/DailyBrief";
 import FearGreedGauge from "@/components/FearGreedGauge";
@@ -15,7 +15,7 @@ export const revalidate = 60;
 export default async function HomePage() {
   const [market, brief] = await Promise.all([
     fetchAllMarkets(),
-    Promise.resolve(getLatestBrief()),
+    getLatestBriefAsync(),
   ]);
 
   const snapshot: Array<{ ticker: Ticker; label: string }> = [

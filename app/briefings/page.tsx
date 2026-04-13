@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllTags, getBriefs } from "@/lib/briefs";
+import { getAllBriefs, getAllTagsAsync } from "@/lib/briefs";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -15,11 +15,11 @@ interface PageProps {
 export default async function BriefingsIndexPage({ searchParams }: PageProps) {
   const { tag } = await searchParams;
   const selectedTag = tag?.toLowerCase();
-  const allBriefs = getBriefs();
+  const allBriefs = await getAllBriefs();
   const briefs = selectedTag
     ? allBriefs.filter((b) => b.tags.map((t) => t.toLowerCase()).includes(selectedTag))
     : allBriefs;
-  const tags = getAllTags();
+  const tags = await getAllTagsAsync();
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
