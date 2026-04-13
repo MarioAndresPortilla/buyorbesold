@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { runScanner } from "@/lib/scanner";
+import { runScanner, parseCriteria } from "@/lib/scanner";
 import { enrichWatchlist } from "@/lib/watchlist";
 import type { SetupCandidate, WatchlistEntry } from "@/lib/types";
 import { arrow, formatPct, formatPrice, formatTime, formatCompact } from "@/lib/format";
 import DigestButton from "@/components/DigestButton";
+import ScannerFilters from "@/components/ScannerFilters";
 
 export const revalidate = 300;
 
@@ -23,9 +24,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ScannerPage() {
+interface PageProps {
+  searchParams: Promise<Record<string, string | undefined>>;
+}
+
+export default async function ScannerPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const hasCustom = ["priceMin", "priceMax", "maxFloat", "minRvol", "smaBouncePct"].some(
+    (k) => sp[k] !== undefined
+  );
+  const overrides = hasCustom ? parseCriteria(sp) : undefined;
+
   const [scan, watchlist] = await Promise.all([
-    runScanner(),
+    runScanner(overrides),
     enrichWatchlist(),
   ]);
 
@@ -54,6 +65,9 @@ export default async function ScannerPage() {
           </div>
           <CriteriaCard criteria={scan.criteria} />
         </section>
+
+        {/* Custom filter controls */}
+        <ScannerFilters />
 
         {/* Digest email action row */}
         <section className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">

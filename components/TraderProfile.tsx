@@ -49,6 +49,8 @@ interface TradeRow {
   entry_date: string;
   exit_price: number | null;
   exit_date: string | null;
+  stop_price: number | null;
+  target_price: number | null;
   pnl_pct: number | null;
   hold_duration_s: number | null;
   comment_count: number;
@@ -395,6 +397,3 @@ function formatHold(seconds: number): string {
   return `${m}m`;
 }
 
-function stop_price(t: TradeRow): string {
-  return t.stop_price != null ? `$${t.stop_price.toFixed(2)}` : "—";
-}

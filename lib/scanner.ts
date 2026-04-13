@@ -25,14 +25,38 @@ const FINNHUB_BASE = "https://finnhub.io/api/v1";
 const USER_AGENT =
   "Mozilla/5.0 (compatible; BuyOrBeSoldScanner/1.0; +https://buyorbesold.com)";
 
-const CRITERIA = {
+const DEFAULT_CRITERIA = {
   priceMin: 1,
   priceMax: 20,
   maxFloat: 20_000_000,
   minRvol: 1.5,
-  smaBouncePct: 0.02, // within 2% of the MA
-  maxCandidates: 30, // hard cap on Finnhub calls per scan
-} as const;
+  smaBouncePct: 0.02,
+  maxCandidates: 30,
+};
+
+export type ScannerCriteria = typeof DEFAULT_CRITERIA;
+
+/**
+ * Merge user-provided overrides with defaults. Clamps values to safe ranges
+ * so users can't accidentally DoS us with maxCandidates=10000.
+ */
+export function parseCriteria(params: Record<string, string | undefined>): ScannerCriteria {
+  const num = (key: string, fallback: number, min: number, max: number) => {
+    const raw = params[key];
+    if (raw === undefined || raw === "") return fallback;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.max(min, Math.min(max, n));
+  };
+  return {
+    priceMin: num("priceMin", DEFAULT_CRITERIA.priceMin, 0.01, 500),
+    priceMax: num("priceMax", DEFAULT_CRITERIA.priceMax, 0.10, 1000),
+    maxFloat: num("maxFloat", DEFAULT_CRITERIA.maxFloat, 1_000_000, 500_000_000),
+    minRvol: num("minRvol", DEFAULT_CRITERIA.minRvol, 0.5, 10),
+    smaBouncePct: num("smaBouncePct", DEFAULT_CRITERIA.smaBouncePct, 0.005, 0.10),
+    maxCandidates: num("maxCandidates", DEFAULT_CRITERIA.maxCandidates, 10, 50),
+  };
+}
 
 type YahooScreenerQuote = {
   symbol?: string;
@@ -211,7 +235,8 @@ function enrichFromHistory(
   symbol: string,
   name: string | undefined,
   marketCap: number | undefined,
-  hist: Awaited<ReturnType<typeof fetchYahooHistory>>
+  hist: Awaited<ReturnType<typeof fetchYahooHistory>>,
+  criteria: ScannerCriteria
 ): EnrichedCandidate {
   const sma50 = simpleMA(hist.closes, 50);
   const sma200 = simpleMA(hist.closes, 200);
@@ -225,7 +250,7 @@ function enrichFromHistory(
 
   // SMA bounce: price within smaBouncePct of either MA.
   const within = (a: number | undefined, b: number) =>
-    a !== undefined && Math.abs((b - a) / a) <= CRITERIA.smaBouncePct;
+    a !== undefined && Math.abs((b - a) / a) <= criteria.smaBouncePct;
   const near50 = within(sma50, hist.price);
   const near200 = within(sma200, hist.price);
   const smaBounce: EnrichedCandidate["smaBounce"] =
@@ -282,7 +307,10 @@ function buildTags(c: EnrichedCandidate, float?: number): string[] {
   return tags;
 }
 
-export async function runScanner(): Promise<ScannerResult> {
+export async function runScanner(
+  overrides?: Partial<ScannerCriteria>
+): Promise<ScannerResult> {
+  const criteria: ScannerCriteria = { ...DEFAULT_CRITERIA, ...overrides };
   const apiKey = process.env.FINNHUB_API_KEY?.trim();
   const degraded = !apiKey;
   const notes: string[] = [];
@@ -309,7 +337,7 @@ export async function runScanner(): Promise<ScannerResult> {
   } catch (err) {
     console.error("[scanner] yahoo screener fail:", err);
     notes.push("Yahoo screener unavailable — returning empty result");
-    return emptyResult(degraded, notes, 0);
+    return emptyResult(degraded, notes, 0, criteria);
   }
 
   // 2. Pre-filter on data we already have: price range, has a ticker.
@@ -317,8 +345,8 @@ export async function runScanner(): Promise<ScannerResult> {
     const price = q.regularMarketPrice ?? 0;
     return (
       !!q.symbol &&
-      price >= CRITERIA.priceMin &&
-      price <= CRITERIA.priceMax
+      price >= criteria.priceMin &&
+      price <= criteria.priceMax
     );
   });
 
@@ -332,7 +360,7 @@ export async function runScanner(): Promise<ScannerResult> {
         Math.log10(Math.max(1, q.regularMarketVolume ?? 0)),
     }))
     .sort((a, b) => b.momentum - a.momentum)
-    .slice(0, CRITERIA.maxCandidates)
+    .slice(0, criteria.maxCandidates)
     .map((x) => x.q);
 
   // 4. Enrich each survivor: Yahoo history (for SMA + RVOL) in parallel,
@@ -345,7 +373,8 @@ export async function runScanner(): Promise<ScannerResult> {
           q.symbol!,
           q.shortName ?? q.longName,
           q.marketCap,
-          hist
+          hist,
+          criteria
         );
       } catch (err) {
         console.warn(`[scanner] history fail ${q.symbol}:`, err);
@@ -379,11 +408,11 @@ export async function runScanner(): Promise<ScannerResult> {
   const qualified: SetupCandidate[] = enriched
     .filter((c) => {
       if (!c.smaBounce) return false;
-      if (c.rvol < CRITERIA.minRvol) return false;
+      if (c.rvol < criteria.minRvol) return false;
       if (apiKey) {
         const f = floats.get(c.symbol);
         if (f === undefined || f === 0) return false; // need float data
-        if (f > CRITERIA.maxFloat) return false;
+        if (f > criteria.maxFloat) return false;
       }
       return true;
     })
@@ -449,11 +478,11 @@ export async function runScanner(): Promise<ScannerResult> {
     degraded,
     notes,
     criteria: {
-      priceMin: CRITERIA.priceMin,
-      priceMax: CRITERIA.priceMax,
-      maxFloat: CRITERIA.maxFloat,
-      minRvol: CRITERIA.minRvol,
-      smaBouncePct: CRITERIA.smaBouncePct,
+      priceMin: criteria.priceMin,
+      priceMax: criteria.priceMax,
+      maxFloat: criteria.maxFloat,
+      minRvol: criteria.minRvol,
+      smaBouncePct: criteria.smaBouncePct,
     },
   };
 }
@@ -464,7 +493,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-function emptyResult(degraded: boolean, notes: string[], candidateCount: number): ScannerResult {
+function emptyResult(degraded: boolean, notes: string[], candidateCount: number, criteria: ScannerCriteria): ScannerResult {
   return {
     topLongs: [],
     topShorts: [],
@@ -474,11 +503,11 @@ function emptyResult(degraded: boolean, notes: string[], candidateCount: number)
     degraded,
     notes,
     criteria: {
-      priceMin: CRITERIA.priceMin,
-      priceMax: CRITERIA.priceMax,
-      maxFloat: CRITERIA.maxFloat,
-      minRvol: CRITERIA.minRvol,
-      smaBouncePct: CRITERIA.smaBouncePct,
+      priceMin: criteria.priceMin,
+      priceMax: criteria.priceMax,
+      maxFloat: criteria.maxFloat,
+      minRvol: criteria.minRvol,
+      smaBouncePct: criteria.smaBouncePct,
     },
   };
 }
