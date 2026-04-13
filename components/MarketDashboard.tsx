@@ -322,7 +322,7 @@ function TickerRow({ ticker, showRange = false }: { ticker: Ticker; showRange?: 
       <div className="min-w-0 flex-1 sm:hidden">
         <Sparkline data={ticker.history} up={up} height={32} className="w-full" />
       </div>
-      <div className="w-[88px] shrink-0 text-right xs:w-28">
+      <div className="w-[72px] shrink-0 text-right xs:w-[88px] sm:w-28">
         <div className="truncate font-mono text-[13px] font-semibold text-[color:var(--text)] xs:text-sm">
           {formatPrice(ticker.price)}
         </div>

@@ -25,11 +25,11 @@ export default async function SiteNav({
     hideBelow?: "xs" | "sm";
   }> = [
     { href: "/dashboard", label: "Dashboard", short: "Dash" },
-    { href: "/scanner", label: "Scanner" },
+    { href: "/scanner", label: "Scanner", short: "Scan" },
     ...(user
       ? [{ href: "/my-journal", label: "My Journal", short: "Mine" }]
-      : [{ href: "/journal", label: "Journal" }]),
-    { href: "/rankings", label: "Rankings", short: "Rank", hideBelow: "xs" as const },
+      : [{ href: "/journal", label: "Journal", short: "J" }]),
+    { href: "/rankings", label: "Rankings", hideBelow: "sm" as const },
     { href: "/feed", label: "Feed", hideBelow: "sm" as const },
     { href: "/briefings", label: "Briefs", hideBelow: "xs" as const },
   ];
@@ -51,7 +51,7 @@ export default async function SiteNav({
           </span>
         </Link>
 
-        <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
+        <nav className="flex shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--muted)] xs:gap-3 xs:tracking-[0.12em] sm:gap-4 sm:text-[11px] sm:tracking-[0.15em]">
           {allLinks.map((link) => {
             const hide =
               link.hideBelow === "xs"

@@ -160,14 +160,14 @@ export default function Leaderboard() {
     >
     <div className="w-full">
       {/* ── Filter Bar ── */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--border)] pb-3 mb-4">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[color:var(--border)] pb-3 mb-4 xs:gap-2">
         {/* Period pills */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-0.5 xs:gap-1">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`rounded px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors ${
+              className={`rounded px-1.5 py-1 font-mono text-[10px] tracking-wider transition-colors xs:px-2.5 xs:text-[11px] ${
                 period === p.value
                   ? "bg-[color:var(--accent)]/20 text-[color:var(--accent)]"
                   : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
@@ -181,12 +181,12 @@ export default function Leaderboard() {
         <span className="hidden sm:inline text-[color:var(--border)]">|</span>
 
         {/* Asset class pills */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-0.5 xs:gap-1">
           {ASSETS.map((a) => (
             <button
               key={a.value}
               onClick={() => setAsset(a.value)}
-              className={`rounded px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors ${
+              className={`rounded px-1.5 py-1 font-mono text-[10px] tracking-wider transition-colors xs:px-2.5 xs:text-[11px] ${
                 asset === a.value
                   ? "bg-[color:var(--accent)]/20 text-[color:var(--accent)]"
                   : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
@@ -200,12 +200,12 @@ export default function Leaderboard() {
         <span className="hidden sm:inline text-[color:var(--border)]">|</span>
 
         {/* Side pills */}
-        <div className="flex gap-1">
+        <div className="flex gap-0.5 xs:gap-1">
           {SIDES.map((s) => (
             <button
               key={s.value}
               onClick={() => setSide(s.value)}
-              className={`rounded px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors ${
+              className={`rounded px-1.5 py-1 font-mono text-[10px] tracking-wider transition-colors xs:px-2.5 xs:text-[11px] ${
                 side === s.value
                   ? "bg-[color:var(--accent)]/20 text-[color:var(--accent)]"
                   : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
@@ -219,28 +219,28 @@ export default function Leaderboard() {
         {/* Verified toggle */}
         <button
           onClick={() => setVerified(!verified)}
-          className={`ml-auto rounded px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors ${
+          className={`ml-auto rounded px-1.5 py-1 font-mono text-[10px] tracking-wider transition-colors xs:px-2.5 xs:text-[11px] ${
             verified
               ? "bg-[color:var(--up)]/15 text-[color:var(--up)]"
               : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
           }`}
           title={verified ? "Showing verified traders only" : "Showing all traders"}
         >
-          {verified ? "Verified" : "All traders"}
+          {verified ? "Verified" : "All"}
         </button>
       </div>
 
       {/* ── Sort selector ── */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-1.5 mb-3 xs:gap-2">
         <span className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--muted)]">
           Rank by
         </span>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-0.5 xs:gap-1">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setSortBy(opt.value)}
-              className={`rounded px-2 py-0.5 font-mono text-[10px] tracking-wider transition-colors ${
+              className={`rounded px-1.5 py-0.5 font-mono text-[9px] tracking-wider transition-colors xs:px-2 xs:text-[10px] ${
                 sortBy === opt.value
                   ? "bg-[color:var(--surface)] text-[color:var(--text)] border border-[color:var(--border)]"
                   : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
@@ -258,7 +258,7 @@ export default function Leaderboard() {
 
       {/* ── Table ── */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left font-mono text-[12px]">
+        <table className="w-full text-left font-mono text-[11px] xs:text-[12px]">
           <thead>
             <tr className="border-b border-[color:var(--border)] text-[10px] uppercase tracking-widest text-[color:var(--muted)]">
               <th className="py-2 pr-2 w-8">#</th>
@@ -320,7 +320,7 @@ export default function Leaderboard() {
                             r.username.slice(0, 2)
                           )}
                         </div>
-                        <span className="truncate max-w-[120px]">
+                        <span className="truncate max-w-[80px] xs:max-w-[120px]">
                           @{r.username}
                         </span>
                         <VerifBadge level={r.verification} />

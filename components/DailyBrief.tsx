@@ -38,7 +38,7 @@ export default function DailyBrief({ brief, market, compact = false }: DailyBrie
       )}
 
       {market && (
-        <div className="grid grid-cols-3 gap-3 border-t border-[color:var(--border)]/60 pt-4">
+        <div className="grid grid-cols-3 gap-2 border-t border-[color:var(--border)]/60 pt-4 xs:gap-3">
           <MiniMetric label="DXY" value={formatPrice(market.dxy.price, { currency: false })} delta={market.dxy.changePct} />
           <MiniMetric label="10Y Yield" value={`${market.tnx.price.toFixed(2)}%`} delta={market.tnx.changePct} />
           <MiniMetric

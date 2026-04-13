@@ -167,7 +167,7 @@ export default function TradeFeed() {
     <select
       value={value}
       onChange={(e) => setter(e.target.value)}
-      className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded px-2 py-1 font-mono text-[11px] text-[color:var(--text)] appearance-none cursor-pointer"
+      className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded px-1.5 py-1 font-mono text-[10px] text-[color:var(--text)] appearance-none cursor-pointer xs:px-2 xs:text-[11px]"
       aria-label={label}
     >
       <option value="">{label}</option>
@@ -184,7 +184,7 @@ export default function TradeFeed() {
     >
     <div className="w-full">
       {/* ── Filter Bar ── */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--border)] pb-3 mb-4">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[color:var(--border)] pb-3 mb-4 xs:gap-2">
         {filterPill("Asset Class", assetClass, setAssetClass, [
           { value: "stocks", label: "Stocks" },
           { value: "options", label: "Options" },
@@ -210,7 +210,7 @@ export default function TradeFeed() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded px-2 py-1 font-mono text-[11px] text-[color:var(--text)] appearance-none cursor-pointer"
+          className="bg-[color:var(--surface)] border border-[color:var(--border)] rounded px-1.5 py-1 font-mono text-[10px] text-[color:var(--text)] appearance-none cursor-pointer xs:px-2 xs:text-[11px]"
         >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
@@ -249,7 +249,7 @@ export default function TradeFeed() {
       {/* ── Table View ── */}
       {viewMode === "table" ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-left font-mono text-[12px]">
+          <table className="w-full text-left font-mono text-[11px] xs:text-[12px]">
             <thead>
               <tr className="border-b border-[color:var(--border)] text-[10px] uppercase tracking-widest text-[color:var(--muted)]">
                 <th className="py-2 pr-2 w-4"></th>
@@ -257,8 +257,8 @@ export default function TradeFeed() {
                 <th className="py-2 pr-3">Ticker</th>
                 <th className="py-2 pr-3">Side</th>
                 <th className="py-2 pr-3 hidden sm:table-cell">Strategy</th>
-                <th className="py-2 pr-3 text-right">Entry</th>
-                <th className="py-2 pr-3 text-right">Exit</th>
+                <th className="py-2 pr-3 text-right hidden xs:table-cell">Entry</th>
+                <th className="py-2 pr-3 text-right hidden xs:table-cell">Exit</th>
                 <th className="py-2 pr-3 text-right">P&amp;L</th>
                 <th className="py-2 pr-3 text-right hidden md:table-cell">Hold</th>
                 <th className="py-2 pr-3 text-right hidden lg:table-cell">Social</th>
@@ -305,8 +305,8 @@ export default function TradeFeed() {
                     <td className="py-2 pr-3 font-semibold">{t.symbol}</td>
                     <td className="py-2 pr-3"><SideBadge side={t.side} /></td>
                     <td className="py-2 pr-3 hidden sm:table-cell"><StrategyBadge strategy={t.strategy} /></td>
-                    <td className="py-2 pr-3 text-right tabular-nums">${t.entry_price.toFixed(2)}</td>
-                    <td className="py-2 pr-3 text-right tabular-nums">
+                    <td className="py-2 pr-3 text-right tabular-nums hidden xs:table-cell">${t.entry_price.toFixed(2)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums hidden xs:table-cell">
                       {t.exit_price != null ? `$${t.exit_price.toFixed(2)}` : "—"}
                     </td>
                     <td className="py-2 pr-3 text-right">
