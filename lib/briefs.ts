@@ -182,3 +182,63 @@ export function getAllTags(): Array<{ tag: string; count: number }> {
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
+
+// ---- Async versions that merge filesystem + AI-generated (KV) briefs ----
+// These are needed by pages that want to show both hand-written markdown
+// briefs AND cron-generated AI briefs in one feed.
+
+import { getAiBrief, listAiBriefs } from "./kv";
+
+/**
+ * Merges filesystem briefs with KV-stored AI briefs, deduped by slug,
+ * newest first. Filesystem briefs take precedence when slugs collide
+ * (so you can override an AI brief by committing a .md with the same slug).
+ */
+export async function getAllBriefs(): Promise<Brief[]> {
+  const fsBriefs = loadAll();
+  const aiBriefs = await listAiBriefs(50);
+
+  const slugs = new Set(fsBriefs.map((b) => b.slug));
+  const merged = [
+    ...fsBriefs,
+    ...aiBriefs.filter((b) => !slugs.has(b.slug)),
+  ];
+  return merged.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/**
+ * Async version of getLatestBrief that also checks KV for AI briefs.
+ */
+export async function getLatestBriefAsync(): Promise<Brief> {
+  const all = await getAllBriefs();
+  if (all.length === 0) return getLatestBrief(); // fallback placeholder
+  return all[0];
+}
+
+/**
+ * Async slug lookup that checks both filesystem and KV.
+ */
+export async function getBriefBySlugAsync(slug: string): Promise<Brief | undefined> {
+  // Check filesystem first (takes precedence).
+  const fsBrief = getBriefBySlug(slug);
+  if (fsBrief) return fsBrief;
+  // Then check KV for AI-generated briefs.
+  const aiBrief = await getAiBrief(slug);
+  return aiBrief ?? undefined;
+}
+
+/**
+ * Async version of getAllTags that includes AI brief tags.
+ */
+export async function getAllTagsAsync(): Promise<Array<{ tag: string; count: number }>> {
+  const all = await getAllBriefs();
+  const counts = new Map<string, number>();
+  for (const b of all) {
+    for (const tag of b.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}

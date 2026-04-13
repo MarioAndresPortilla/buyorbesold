@@ -6,8 +6,20 @@
   "outputDirectory": ".next",
   "crons": [
     {
-      "path": "/api/cron/send-brief",
-      "schedule": "0 11 * * 1-5"
+      "path": "/api/cron/send-brief?edition=premarket",
+      "schedule": "0 13 * * 1-5"
+    },
+    {
+      "path": "/api/cron/send-brief?edition=midday",
+      "schedule": "0 16 * * 1-5"
+    },
+    {
+      "path": "/api/cron/send-brief?edition=postmarket",
+      "schedule": "0 20 * * 1-5"
+    },
+    {
+      "path": "/api/cron/recompute-stats",
+      "schedule": "0 * * * *"
     }
   ]
 }

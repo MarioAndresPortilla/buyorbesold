@@ -9,7 +9,7 @@
  */
 
 import { Redis } from "@upstash/redis";
-import type { ScannerResult, Trade } from "./types";
+import type { Brief, ScannerResult, Trade } from "./types";
 
 export function isKvAvailable(): boolean {
   return Boolean(
@@ -265,6 +265,69 @@ export async function deleteUserTrade(email: string, id: string): Promise<boolea
     console.warn("[kv] deleteUserTrade fail:", err);
     return false;
   }
+}
+
+// ---- AI-generated briefs ----
+
+const AI_BRIEF_PREFIX = "brief:ai:";
+const AI_BRIEF_INDEX = "brief:ai:index";
+
+export async function saveAiBrief(brief: Brief): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    const key = `${AI_BRIEF_PREFIX}${brief.slug}`;
+    await kv.set(key, brief, { ex: 90 * 24 * 60 * 60 }); // keep 90 days
+    const score = new Date(brief.date).getTime() || Date.now();
+    await kv.zadd(AI_BRIEF_INDEX, { score, member: brief.slug });
+    return true;
+  } catch (err) {
+    console.warn("[kv] saveAiBrief fail:", err);
+    return false;
+  }
+}
+
+export async function listAiBriefs(limit = 50): Promise<Brief[]> {
+  const kv = await getKv();
+  if (!kv) return [];
+  try {
+    const slugs = await kv.zrange<string[]>(AI_BRIEF_INDEX, 0, limit - 1, { rev: true });
+    if (!slugs?.length) return [];
+    const briefs = await kv.mget<Brief[]>(
+      ...slugs.map((s) => `${AI_BRIEF_PREFIX}${s}`)
+    );
+    return briefs.filter((b): b is Brief => b !== null);
+  } catch (err) {
+    console.warn("[kv] listAiBriefs fail:", err);
+    return [];
+  }
+}
+
+export async function getAiBrief(slug: string): Promise<Brief | null> {
+  const kv = await getKv();
+  if (!kv) return null;
+  try {
+    return (await kv.get<Brief>(`${AI_BRIEF_PREFIX}${slug}`)) ?? null;
+  } catch (err) {
+    console.warn("[kv] getAiBrief fail:", err);
+    return null;
+  }
+}
+
+export async function wasAiBriefSent(slug: string): Promise<boolean> {
+  const kv = await getKv();
+  if (!kv) return false;
+  try {
+    return (await kv.get(`newsletter:ai-sent:${slug}`)) !== null;
+  } catch { return false; }
+}
+
+export async function markAiBriefSent(slug: string, count: number): Promise<void> {
+  const kv = await getKv();
+  if (!kv) return;
+  try {
+    await kv.set(`newsletter:ai-sent:${slug}`, { sentAt: new Date().toISOString(), recipients: count }, { ex: 60 * 24 * 60 * 60 });
+  } catch (err) { console.warn("[kv] markAiBriefSent fail:", err); }
 }
 
 // ---- Newsletter subscribers (local fallback to Resend audience) ----

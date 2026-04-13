@@ -2,16 +2,27 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { signUnsubscribeToken } from "@/lib/auth";
 import { getLatestBrief } from "@/lib/briefs";
+import { generateBrief, type BriefEdition } from "@/lib/ai-brief";
 import { fetchAllMarkets } from "@/lib/markets";
-import { isKvAvailable, listSubscribers, markBriefSent, wasBriefSent } from "@/lib/kv";
+import { runScanner } from "@/lib/scanner";
+import {
+  isKvAvailable,
+  listSubscribers,
+  markBriefSent,
+  saveAiBrief,
+  wasBriefSent,
+  wasAiBriefSent,
+  markAiBriefSent,
+} from "@/lib/kv";
 import { EMAIL_COLORS, SITE_URL, emailShell, escape, renderMarketStrip } from "@/lib/email";
 import { formatPrice } from "@/lib/format";
 import type { Brief, MarketData } from "@/lib/types";
 
 export const runtime = "nodejs";
-// Hobby tier max serverless duration is 10s for Free, 60s for Pro.
-// This cron makes ~16 parallel API calls + N Resend sends. 60s is plenty.
-export const maxDuration = 60;
+// Pro tier: 300s max. AI generation + market fetch + email sends need headroom.
+export const maxDuration = 120;
+
+const VALID_EDITIONS = new Set<BriefEdition>(["premarket", "midday", "postmarket"]);
 
 /**
  * Daily brief sender — triggered by Vercel Cron weekdays 11:00 UTC (~7am ET).
@@ -39,7 +50,9 @@ interface SendResult {
   skipped: boolean;
   reason?: string;
   dryRun?: boolean;
-  sample?: string; // first 2000 chars of HTML in dry-run mode
+  edition?: string;
+  useAi?: boolean;
+  sample?: string;
 }
 
 function renderBriefEmail(
@@ -175,52 +188,89 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   } else {
-    // If CRON_SECRET isn't set, still require a dev-only header to prevent
-    // random internet traffic from triggering sends.
-    const url = new URL(req.url);
-    if (!url.searchParams.has("force")) {
-      return NextResponse.json(
-        { error: "CRON_SECRET not configured" },
-        { status: 500 }
-      );
+    const u = new URL(req.url);
+    if (!u.searchParams.has("force")) {
+      return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
     }
   }
 
   try {
-    const brief = getLatestBrief();
+    const u = new URL(req.url);
+    const editionParam = u.searchParams.get("edition") as BriefEdition | null;
+    const useAi =
+      editionParam &&
+      VALID_EDITIONS.has(editionParam) &&
+      !!process.env.ANTHROPIC_API_KEY;
+    const edition: BriefEdition =
+      editionParam && VALID_EDITIONS.has(editionParam) ? editionParam : "premarket";
 
-    // 2. Idempotency — skip if already sent today.
-    if (await wasBriefSent(brief.slug)) {
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        reason: "brief already sent",
-        slug: brief.slug,
-      });
-    }
-
-    // 3. Pull market data (for the in-email snapshot).
+    // 2. Pull market data (used for AI generation AND email snapshot).
     const market = await fetchAllMarkets();
+
+    // 3. Resolve the brief — AI-generated or latest filesystem.
+    let brief: Brief;
+
+    if (useAi) {
+      const aiSlug = `${new Date().toISOString().slice(0, 10)}-${edition}`;
+      if (await wasAiBriefSent(aiSlug)) {
+        return NextResponse.json({
+          ok: true,
+          skipped: true,
+          reason: `AI ${edition} brief already sent today`,
+          slug: aiSlug,
+        });
+      }
+      const scanner = await runScanner().catch(() => ({
+        topLongs: [],
+        topShorts: [],
+        scannedAt: new Date().toISOString(),
+        candidateCount: 0,
+        qualifiedCount: 0,
+        degraded: true,
+        notes: ["scanner unavailable"],
+        criteria: {
+          priceMin: 1,
+          priceMax: 20,
+          maxFloat: 20_000_000,
+          minRvol: 1.5,
+          smaBouncePct: 0.02,
+        },
+      }));
+      brief = await generateBrief(edition, market, scanner);
+      await saveAiBrief(brief);
+    } else {
+      brief = getLatestBrief();
+      if (await wasBriefSent(brief.slug)) {
+        return NextResponse.json({
+          ok: true,
+          skipped: true,
+          reason: "brief already sent",
+          slug: brief.slug,
+        });
+      }
+    }
 
     // 4. Send
     const resendKey = process.env.RESEND_API_KEY;
     const from = process.env.RESEND_FROM_EMAIL ?? "mario@buyorbesold.com";
     const resend = resendKey ? new Resend(resendKey) : null;
-
     const recipients = await gatherRecipients(resend);
 
     if (!resend) {
-      // Dev dry-run: don't send, just show what would have happened.
-      // Render with a placeholder unsub URL.
-      const html = renderBriefEmail(brief, market, `${SITE_URL}/api/unsubscribe?token=dev`);
-      const result: SendResult = {
+      const html = renderBriefEmail(
+        brief,
+        market,
+        `${SITE_URL}/api/unsubscribe?token=dev`
+      );
+      return NextResponse.json({
         ok: true,
         recipients: recipients.length,
         skipped: false,
         dryRun: true,
+        edition,
+        useAi: !!useAi,
         sample: html.slice(0, 2000),
-      };
-      return NextResponse.json(result);
+      } satisfies SendResult);
     }
 
     if (recipients.length === 0) {
@@ -238,9 +288,6 @@ export async function GET(req: Request) {
 
     for (const [i, email] of recipients.entries()) {
       try {
-        // Per-recipient unsubscribe token: signs the individual email so the
-        // one-click link in their copy only removes THEIR address, not anyone
-        // else's. Signed JWT = can't be forged.
         const unsubToken = await signUnsubscribeToken(email);
         const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
         const html = renderBriefEmail(brief, market, unsubscribeUrl);
@@ -251,36 +298,38 @@ export async function GET(req: Request) {
           to: email,
           subject,
           html,
-          // RFC 8058 one-click unsubscribe — Gmail + others use this for the
-          // native "Unsubscribe" button at the top of the message.
           headers: {
             "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:${from}?subject=unsubscribe>`,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
           },
         });
-        if (error) {
-          errors.push(`${email}: ${error.message ?? "unknown"}`);
-        } else {
-          successes++;
-        }
+        if (error) errors.push(`${email}: ${error.message ?? "unknown"}`);
+        else successes++;
       } catch (err) {
-        errors.push(`${email}: ${err instanceof Error ? err.message : "send error"}`);
+        errors.push(
+          `${email}: ${err instanceof Error ? err.message : "send error"}`
+        );
       }
-      // Resend free: 2 sends/sec. 600ms delay is comfortably under.
       if (i < recipients.length - 1) await sleep(600);
     }
 
-    // 6. Mark sent so retries are no-ops.
+    // 5. Mark sent so retries are idempotent.
     if (successes > 0) {
-      await markBriefSent(brief.slug, successes);
+      if (useAi) {
+        await markAiBriefSent(brief.slug, successes);
+      } else {
+        await markBriefSent(brief.slug, successes);
+      }
     }
 
     return NextResponse.json({
       ok: true,
       recipients: successes,
       failed: errors.length,
-      errors: errors.slice(0, 5), // cap in response
+      errors: errors.slice(0, 5),
       slug: brief.slug,
+      edition,
+      useAi: !!useAi,
       kvAvailable: isKvAvailable(),
     });
   } catch (err) {

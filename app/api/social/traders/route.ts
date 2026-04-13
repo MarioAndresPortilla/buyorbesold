@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, first } from "@/lib/db";
+import { query, first } from "@/lib/db";
 
 export const revalidate = 300;
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     // Trader profile
     const trader = first(
-      await sql`
+      await query<{ id: string; profile_public: boolean }>`
         SELECT id, username, display_name, avatar_url, bio,
                verification, broker_source, follower_count, following_count,
                profile_public, show_pnl_dollars, created_at
@@ -26,15 +26,15 @@ export async function GET(req: NextRequest) {
       `
     );
 
-    if (!trader || !(trader as any).profile_public) {
+    if (!trader || !trader.profile_public) {
       return NextResponse.json({ error: "Trader not found" }, { status: 404 });
     }
 
-    const traderId = (trader as any).id;
+    const traderId = trader.id;
 
     // Stats (all-time, all assets, both sides)
     const stats = first(
-      await sql`
+      await query`
         SELECT * FROM trader_stats
         WHERE trader_id = ${traderId}
           AND period = 'all' AND asset_class = 'all' AND side = 'both'
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     );
 
     // Recent closed trades (last 20)
-    const recentTrades = await sql`
+    const recentTrades = await query`
       SELECT id, symbol, instrument_name, asset_class, side, strategy,
              entry_price, entry_date, exit_price, exit_date,
              stop_price, target_price, thesis, tags,
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     `;
 
     // Open positions
-    const openPositions = await sql`
+    const openPositions = await query`
       SELECT id, symbol, instrument_name, asset_class, side, strategy,
              entry_price, entry_date, stop_price, target_price, thesis, tags,
              status, created_at
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     `;
 
     // Stats breakdown by asset class
-    const statsByAsset = await sql`
+    const statsByAsset = await query`
       SELECT * FROM trader_stats
       WHERE trader_id = ${traderId}
         AND period = 'all' AND side = 'both'
