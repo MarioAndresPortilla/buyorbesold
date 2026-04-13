@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 import { isAdmin, isAuthConfigured } from "@/lib/auth";
 import { isKvAvailable } from "@/lib/kv";
 import NewTradeForm from "@/components/NewTradeForm";
@@ -23,24 +25,7 @@ export default async function NewTradePage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[760px] items-center justify-between gap-2 px-3 py-3 xs:px-4 xs:py-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
-              B/S
-            </span>
-            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">
-              BUYORBESOLD
-            </span>
-          </Link>
-          <Link
-            href="/journal"
-            className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] hover:text-[color:var(--accent)] xs:text-[11px]"
-          >
-            ← Journal
-          </Link>
-        </div>
-      </header>
+      <SiteNav maxWidth="max-w-[760px]" links={[{href: "/journal", label: "← Journal"}]} />
 
       <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
         <h1 className="font-bebas text-4xl tracking-wide xs:text-5xl">
@@ -69,9 +54,7 @@ export default async function NewTradePage() {
           <NewTradeForm />
         </div>
 
-        <p className="mt-16 border-t border-[color:var(--border)]/70 pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          Not financial advice.
-        </p>
+        <SiteFooter minimal />
       </main>
     </div>
   );

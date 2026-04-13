@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BRIEFS, getBriefBySlug } from "@/lib/briefs";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
@@ -85,28 +87,14 @@ export default async function BriefPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[760px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
-              B/S
-            </span>
-            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">BUYORBESOLD</span>
-          </Link>
-          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
-            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              <span className="xs:hidden">Briefs</span>
-              <span className="hidden xs:inline">All briefs</span>
-            </Link>
-            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
-              Scanner
-            </Link>
-            <Link href="/journal" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Journal
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteNav
+        maxWidth="max-w-[760px]"
+        links={[
+          { href: "/briefings", label: "All briefs", short: "Briefs" },
+          { href: "/scanner", label: "Scanner" },
+          { href: "/journal", label: "Journal", hideBelow: "xs" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
         <Link
@@ -155,9 +143,7 @@ export default async function BriefPage({ params }: PageProps) {
           />
         </div>
 
-        <footer className="mt-16 border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          Not financial advice. Do your own research.
-        </footer>
+        <SiteFooter minimal />
       </main>
     </div>
   );

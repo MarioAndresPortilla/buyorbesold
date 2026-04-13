@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 import { runScanner } from "@/lib/scanner";
 import { enrichWatchlist } from "@/lib/watchlist";
 import type { SetupCandidate, WatchlistEntry } from "@/lib/types";
@@ -29,29 +31,7 @@ export default async function ScannerPage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
-              B/S
-            </span>
-            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">
-              BUYORBESOLD
-            </span>
-          </Link>
-          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
-            <Link href="/journal" className="hover:text-[color:var(--accent)]">
-              Journal
-            </Link>
-            <Link href="/scanner/history" className="hover:text-[color:var(--accent)]">
-              Archive
-            </Link>
-            <Link href="/dashboard" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Dash<span className="hidden xs:inline">board</span>
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteNav />
 
       <main className="mx-auto max-w-[1200px] space-y-6 px-4 py-8 xs:py-10">
         {/* Title row */}
@@ -157,20 +137,7 @@ export default async function ScannerPage() {
           </p>
         </section>
 
-        <footer className="flex flex-col items-center gap-2 border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dashboard
-            </Link>
-            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              Briefings
-            </Link>
-            <a href="/rss.xml" className="hover:text-[color:var(--accent)]">
-              RSS
-            </a>
-          </div>
-          <div>Cached 5 min · Data: Yahoo Finance, Finnhub · Not financial advice.</div>
-        </footer>
+        <SiteFooter sub="Cached 5 min · Data: Yahoo Finance, Finnhub · Not financial advice." />
       </main>
     </div>
   );

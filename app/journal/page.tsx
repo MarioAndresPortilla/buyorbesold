@@ -11,6 +11,8 @@ import {
 import { arrow, formatPct, formatPrice } from "@/lib/format";
 import type { Trade } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -40,36 +42,26 @@ export default async function JournalPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
-              B/S
-            </span>
-            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">
-              BUYORBESOLD
-            </span>
-          </Link>
-          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dash<span className="hidden xs:inline">board</span>
+      <SiteNav
+        maxWidth="max-w-[1100px]"
+        links={[
+          { href: "/dashboard", label: "Dashboard", short: "Dash" },
+          { href: "/scanner", label: "Scanner" },
+          { href: "/journal/analytics", label: "Stats" },
+        ]}
+        trailing={
+          admin ? (
+            <LogoutButton />
+          ) : (
+            <Link
+              href="/login"
+              className="hidden hover:text-[color:var(--accent)] xs:inline"
+            >
+              Admin
             </Link>
-            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
-              Scanner
-            </Link>
-            <Link href="/journal/analytics" className="hover:text-[color:var(--accent)]">
-              Stats
-            </Link>
-            {admin ? (
-              <LogoutButton />
-            ) : (
-              <Link href="/login" className="hidden hover:text-[color:var(--accent)] xs:inline">
-                Admin
-              </Link>
-            )}
-          </nav>
-        </div>
-      </header>
+          )
+        }
+      />
 
       <main className="mx-auto max-w-[1100px] space-y-6 px-4 py-8 xs:py-10">
         {welcome && (
@@ -171,9 +163,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
           )}
         </section>
 
-        <footer className="border-t border-[color:var(--border)]/70 pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          Not financial advice. Do your own research.
-        </footer>
+        <SiteFooter minimal />
       </main>
     </div>
   );

@@ -5,6 +5,8 @@ import { arrow, formatPct, formatPrice } from "@/lib/format";
 import DailyBrief from "@/components/DailyBrief";
 import FearGreedGauge from "@/components/FearGreedGauge";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 import Sparkline from "@/components/Sparkline";
 import type { Ticker } from "@/lib/types";
 
@@ -25,33 +27,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      {/* Top nav */}
-      <header className="border-b border-[color:var(--border)]">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-3 xs:gap-3 xs:px-4 xs:py-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2 xs:gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
-              B/S
-            </span>
-            <span className="truncate font-bebas text-lg tracking-wider xs:text-xl">
-              BUYORBESOLD
-            </span>
-          </Link>
-          <nav className="flex shrink-0 items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)] xs:gap-4 xs:text-[11px] xs:tracking-[0.15em]">
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dash<span className="hidden xs:inline">board</span>
-            </Link>
-            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
-              Scanner
-            </Link>
-            <Link href="/journal" className="hover:text-[color:var(--accent)]">
-              Journal
-            </Link>
-            <Link href="/briefings" className="hidden hover:text-[color:var(--accent)] xs:inline">
-              Briefs
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteNav />
 
       {/* Hero */}
       <section className="border-b border-[color:var(--border)]">
@@ -165,40 +141,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <footer className="flex flex-col items-center gap-2 border-t border-[color:var(--border)] pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/dashboard" className="hover:text-[color:var(--accent)]">
-              Dashboard
-            </Link>
-            <Link href="/scanner" className="hover:text-[color:var(--accent)]">
-              Scanner
-            </Link>
-            <Link href="/journal" className="hover:text-[color:var(--accent)]">
-              Journal
-            </Link>
-            <Link href="/briefings" className="hover:text-[color:var(--accent)]">
-              Briefings
-            </Link>
-            <Link href="/newsletter" className="hover:text-[color:var(--accent)]">
-              Newsletter
-            </Link>
-            <a href="/rss.xml" className="hover:text-[color:var(--accent)]">
-              RSS
-            </a>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link href="/legal/privacy" className="hover:text-[color:var(--accent)]">
-              Privacy
-            </Link>
-            <Link href="/legal/terms" className="hover:text-[color:var(--accent)]">
-              Terms
-            </Link>
-          </div>
-          <div>
-            Not financial advice. Do your own research. ©{" "}
-            {new Date().getFullYear()} BuyOrBeSold.com
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );
