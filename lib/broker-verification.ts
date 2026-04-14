@@ -136,26 +136,71 @@ export async function exchangeAlpacaCode(
   return res.json() as Promise<AlpacaTokenResponse>;
 }
 
+// ─────────────────────────────────────────────
+// Account type detection (paper vs live)
+// ─────────────────────────────────────────────
+
 /**
- * Fetch closed (filled) orders from Alpaca.
- * Uses the trading API v2 endpoint. Works for both paper and live accounts.
+ * Alpaca OAuth tokens are scoped to a single account type — a token issued
+ * for a paper account returns 401/403 against the live API and vice versa.
+ * To support both transparently, we probe the account endpoint on each API
+ * and use whichever one accepts the token.
+ */
+export type AlpacaAccountType = "paper" | "live";
+
+const ALPACA_API_URLS: Record<AlpacaAccountType, string> = {
+  paper: "https://paper-api.alpaca.markets",
+  live: "https://api.alpaca.markets",
+};
+
+/**
+ * Probe both Alpaca APIs and return whichever one accepts the access token.
+ * Tries paper first (safer default for testing). Returns null if neither works.
+ */
+export async function detectAlpacaAccountType(
+  accessToken: string
+): Promise<AlpacaAccountType | null> {
+  for (const type of ["paper", "live"] as const) {
+    try {
+      const res = await fetch(`${ALPACA_API_URLS[type]}/v2/account`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (res.ok) return type;
+    } catch {
+      // Network error — try the other one
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetch closed (filled) orders from the appropriate Alpaca API.
+ * Pass `type` to hit a specific environment, or omit to auto-detect.
  */
 export async function fetchAlpacaOrders(
   accessToken: string,
-  since?: string
+  options: { type?: AlpacaAccountType; since?: string } = {}
 ): Promise<AlpacaOrder[]> {
+  const type = options.type ?? (await detectAlpacaAccountType(accessToken));
+  if (!type) {
+    throw new Error("Alpaca token rejected by both paper and live APIs");
+  }
+
   const params = new URLSearchParams({
     status: "closed",
     limit: "500",
     direction: "desc",
   });
 
-  if (since) {
-    params.set("after", since);
+  if (options.since) {
+    params.set("after", options.since);
   }
 
   const res = await fetch(
-    `https://api.alpaca.markets/v2/orders?${params.toString()}`,
+    `${ALPACA_API_URLS[type]}/v2/orders?${params.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -166,7 +211,7 @@ export async function fetchAlpacaOrders(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Alpaca orders fetch failed (${res.status}): ${text}`);
+    throw new Error(`Alpaca orders fetch failed (${res.status}, ${type}): ${text}`);
   }
 
   const orders = (await res.json()) as AlpacaOrder[];
@@ -184,18 +229,27 @@ export async function fetchAlpacaOrders(
 /**
  * Import filled Alpaca orders as verified social trades.
  *
+ * Auto-detects whether the access token is for a paper or live account,
+ * then imports from the matching API. The broker_source is tagged
+ * "alpaca-paper" or "alpaca-live" so re-syncs hit the right endpoint.
+ *
  * - Skips orders that already exist (by broker_order_id)
  * - Sets verification = 'broker-linked'
  * - Computes and stores proof_hash
  * - Updates the trader's verification level
  *
- * Returns the count of newly imported trades.
+ * Returns the count of newly imported trades plus the detected account type.
  */
 export async function importAlpacaTrades(
   traderId: string,
   accessToken: string
-): Promise<{ imported: number; skipped: number }> {
-  const orders = await fetchAlpacaOrders(accessToken);
+): Promise<{ imported: number; skipped: number; accountType: AlpacaAccountType }> {
+  const accountType = await detectAlpacaAccountType(accessToken);
+  if (!accountType) {
+    throw new Error("Alpaca token rejected by both paper and live APIs");
+  }
+
+  const orders = await fetchAlpacaOrders(accessToken, { type: accountType });
 
   let imported = 0;
   let skipped = 0;
@@ -257,10 +311,11 @@ export async function importAlpacaTrades(
     imported++;
   }
 
-  // Upgrade trader verification level if not already higher
-  await upgradeTraderVerification(traderId, "broker-linked", "alpaca");
+  // Upgrade trader verification level if not already higher.
+  // Tag broker_source with the account type so re-syncs know which API to hit.
+  await upgradeTraderVerification(traderId, "broker-linked", `alpaca-${accountType}`);
 
-  return { imported, skipped };
+  return { imported, skipped, accountType };
 }
 
 // ─────────────────────────────────────────────

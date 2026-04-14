@@ -107,7 +107,8 @@ export async function GET(req: Request) {
       tokenResponse.access_token
     );
 
-    const successMsg = `Connected to Alpaca. Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} already existed)` : ""}.`;
+    const accountLabel = result.accountType === "paper" ? "Alpaca Paper" : "Alpaca Live";
+    const successMsg = `Connected to ${accountLabel}. Imported ${result.imported} trade${result.imported !== 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} already existed)` : ""}.`;
 
     return NextResponse.redirect(
       `${redirectBase}?success=${encodeURIComponent(successMsg)}`

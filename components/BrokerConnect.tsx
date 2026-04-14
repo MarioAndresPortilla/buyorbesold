@@ -33,6 +33,19 @@ const UPCOMING_BROKERS = [
   { name: "Robinhood", id: "robinhood" },
 ];
 
+/**
+ * Render broker_source like "alpaca-paper" or "alpaca-live" as a
+ * human-readable label with a paper/live indicator pill.
+ */
+function formatBrokerSource(source: string): { name: string; mode: "paper" | "live" | null } {
+  const lower = source.toLowerCase();
+  if (lower.startsWith("alpaca-paper")) return { name: "Alpaca", mode: "paper" };
+  if (lower.startsWith("alpaca-live")) return { name: "Alpaca", mode: "live" };
+  if (lower === "alpaca") return { name: "Alpaca", mode: null };
+  // Fallback: title-case the whole thing
+  return { name: source.charAt(0).toUpperCase() + source.slice(1), mode: null };
+}
+
 export default function BrokerConnect({
   verification,
   brokerSource,
@@ -121,14 +134,45 @@ export default function BrokerConnect({
             <div>
               <div
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
                   fontFamily: "var(--font-mono, monospace)",
                   fontSize: "13px",
                   fontWeight: 600,
                   color: "var(--text)",
-                  textTransform: "capitalize",
                 }}
               >
-                {brokerSource}
+                {(() => {
+                  const { name, mode } = formatBrokerSource(brokerSource);
+                  return (
+                    <>
+                      {name}
+                      {mode && (
+                        <span
+                          style={{
+                            background:
+                              mode === "live"
+                                ? "color-mix(in srgb, var(--up) 15%, transparent)"
+                                : "color-mix(in srgb, var(--accent) 15%, transparent)",
+                            color: mode === "live" ? "var(--up)" : "var(--accent)",
+                            border:
+                              mode === "live"
+                                ? "1px solid color-mix(in srgb, var(--up) 30%, transparent)"
+                                : "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                            borderRadius: "4px",
+                            padding: "2px 6px",
+                            fontSize: "9px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.1em",
+                          }}
+                        >
+                          {mode}
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               {lastSyncAt && (
                 <div
