@@ -49,7 +49,7 @@ export default function LoginForm({ disabled = false }: LoginFormProps) {
     <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">
       <form onSubmit={submit} className="flex flex-col gap-3">
         <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">
-          Admin email
+          Email
         </label>
         <input
           type="email"

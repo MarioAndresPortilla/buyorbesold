@@ -7,7 +7,7 @@ import { isAuthConfigured } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Admin sign-in for the BuyOrBeSold trading journal.",
+  description: "Sign in or create a free account for your private BuyOrBeSold trading journal.",
   robots: { index: false, follow: false },
 };
 
@@ -18,7 +18,6 @@ interface PageProps {
 const ERROR_MESSAGES: Record<string, string> = {
   missing: "Missing magic link token.",
   invalid: "That link is invalid or expired. Request a new one.",
-  forbidden: "That email is not authorized.",
   notconfigured: "Auth is not configured on this deployment.",
 };
 
