@@ -5,15 +5,16 @@ interface SiteFooterProps {
   sub?: string;
   /**
    * @deprecated kept for backward-compat; footer is now uniform site-wide.
-   * This prop is ignored — every page gets the same full footer.
+   * This prop is ignored — every page gets the same footer.
    */
   minimal?: boolean;
 }
 
 /**
- * The single canonical site footer — rendered identically on every page.
- * No more "minimal" variant. Every visitor gets the same trust markers:
- * logo, full nav, legal links, disclaimer.
+ * The canonical site footer. Deliberately does NOT repeat links that already
+ * appear in SiteNav (Dashboard, Scanner, Journal, Briefings, Rankings, Feed).
+ * Instead it surfaces only the items the header can't: Newsletter signup,
+ * RSS feed, legal pages, and sign-in — plus the disclaimer.
  */
 export default function SiteFooter({ sub }: SiteFooterProps) {
   return (
@@ -29,23 +30,8 @@ export default function SiteFooter({ sub }: SiteFooterProps) {
           </span>
         </div>
 
-        {/* Primary nav */}
+        {/* Subscribe / feeds — the only non-header utility links */}
         <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--muted)] xs:gap-x-5 xs:text-[11px]">
-          <Link href="/dashboard" className="transition-colors hover:text-[color:var(--accent)]">
-            Dashboard
-          </Link>
-          <Link href="/scanner" className="transition-colors hover:text-[color:var(--accent)]">
-            Scanner
-          </Link>
-          <Link href="/journal" className="transition-colors hover:text-[color:var(--accent)]">
-            Journal
-          </Link>
-          <Link href="/briefings" className="transition-colors hover:text-[color:var(--accent)]">
-            Briefings
-          </Link>
-          <Link href="/rankings" className="transition-colors hover:text-[color:var(--accent)]">
-            Rankings
-          </Link>
           <Link href="/newsletter" className="transition-colors hover:text-[color:var(--accent)]">
             Newsletter
           </Link>
@@ -57,8 +43,8 @@ export default function SiteFooter({ sub }: SiteFooterProps) {
         {/* Divider */}
         <div className="mx-auto mb-4 h-px w-16 bg-[color:var(--border)]" />
 
-        {/* Legal links */}
-        <div className="mb-3 flex items-center justify-center gap-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)]/60">
+        {/* Legal + account */}
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--muted)]/60">
           <Link href="/legal/privacy" className="transition-colors hover:text-[color:var(--accent)]">
             Privacy
           </Link>
