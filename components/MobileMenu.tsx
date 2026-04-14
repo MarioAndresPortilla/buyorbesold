@@ -58,6 +58,7 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
 
   const isActive = useCallback(
     (link: NavLink) => {
+      if (!pathname) return false;
       const paths = link.matches ?? [link.href];
       return paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
     },
@@ -91,33 +92,41 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
         </svg>
       </button>
 
-      {/* Drawer + backdrop */}
+      {/* Backdrop — always mounted when open, solid overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex justify-end md:hidden"
+          className="md:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          {/* Backdrop */}
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/70"
+            style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
           />
 
-          {/* Drawer */}
-          <div
-            className="relative flex h-full w-[280px] max-w-[85vw] flex-col border-l border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl animate-[slide-in_200ms_ease-out]"
+          {/* Drawer panel — explicit right-anchored fixed positioning so it
+              never depends on flex layout or h-full fallbacks. Uses 100dvh
+              with svh fallback so iOS Safari address-bar collapse doesn't
+              clip the bottom. */}
+          <aside
+            className="fixed right-0 top-0 z-[70] flex w-[82vw] max-w-[320px] flex-col border-l border-[color:var(--border)] bg-[color:var(--surface)] shadow-[0_0_40px_rgba(0,0,0,0.45)]"
+            style={{
+              height: "100svh",
+              minHeight: "100vh",
+              animation: "slide-in 200ms ease-out",
+            }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[color:var(--border)] px-5 py-4">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)]">
+            <div className="flex shrink-0 items-center justify-between border-b border-[color:var(--border)] px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)]">
                   B/S
                 </span>
-                <span className="font-bebas text-lg tracking-wider">
+                <span className="truncate font-bebas text-base tracking-wider">
                   BUYORBESOLD
                 </span>
               </div>
@@ -125,11 +134,11 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors hover:bg-[color:var(--border)]/40 hover:text-[color:var(--text)]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors hover:bg-[color:var(--border)]/40 hover:text-[color:var(--text)]"
               >
                 <svg
-                  width="18"
-                  height="18"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -144,35 +153,50 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
               </button>
             </div>
 
-            {/* Nav links */}
-            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 font-mono text-[13px] uppercase tracking-[0.12em]">
-              {links.map((link) => {
-                const active = isActive(link);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-3 rounded-md px-3 py-3 transition-colors ${
-                      active
-                        ? "bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
-                        : "text-[color:var(--muted)] hover:bg-[color:var(--border)]/40 hover:text-[color:var(--text)]"
-                    }`}
-                  >
-                    {active && (
+            {/* Nav links — min-h-0 is required so flex-1 can shrink and
+                overflow-y-auto takes effect instead of the list growing the
+                parent. */}
+            <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
+              {links.length === 0 ? (
+                <div className="px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-[color:var(--muted)]">
+                  No nav links
+                </div>
+              ) : (
+                links.map((link) => {
+                  const active = isActive(link);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center gap-3 rounded-md px-3 py-3 font-mono text-[13px] font-medium uppercase tracking-[0.12em] transition-colors ${
+                        active
+                          ? "bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
+                          : "text-[color:var(--text)] hover:bg-[color:var(--border)]/40"
+                      }`}
+                    >
+                      {active && (
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--accent)]"
+                        />
+                      )}
+                      <span className="flex-1">{link.label}</span>
                       <span
                         aria-hidden
-                        className="h-1 w-1 rounded-full bg-[color:var(--accent)]"
-                      />
-                    )}
-                    <span className="flex-1">{link.label}</span>
-                  </Link>
-                );
-              })}
+                        className="text-[color:var(--muted)]/50"
+                      >
+                        →
+                      </span>
+                    </Link>
+                  );
+                })
+              )}
             </nav>
 
             {/* Footer actions */}
-            <div className="border-t border-[color:var(--border)] p-4">
+            <div className="shrink-0 border-t border-[color:var(--border)] p-4">
               {signedIn ? (
                 <form action="/api/auth/logout" method="POST">
                   <button
@@ -185,16 +209,17 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
               ) : (
                 <Link
                   href="/login"
+                  onClick={() => setOpen(false)}
                   className="flex w-full items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
                 >
                   Sign up free →
                 </Link>
               )}
-              <p className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--muted)]/60">
+              <p className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--muted)]/70">
                 Not financial advice
               </p>
             </div>
-          </div>
+          </aside>
         </div>
       )}
     </>
