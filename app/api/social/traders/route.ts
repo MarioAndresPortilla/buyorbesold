@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query, first } from "@/lib/db";
+import {
+  query,
+  first,
+  coerceNums,
+  STATS_NUMERIC_FIELDS,
+  TRADE_NUMERIC_FIELDS,
+} from "@/lib/db";
 
 export const revalidate = 300;
 
@@ -74,10 +80,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       trader,
-      stats,
-      recentTrades,
-      openPositions,
-      statsByAsset,
+      stats: stats ? coerceNums(stats, STATS_NUMERIC_FIELDS) : null,
+      recentTrades: recentTrades.map((t) => coerceNums(t, TRADE_NUMERIC_FIELDS)),
+      openPositions: openPositions.map((t) => coerceNums(t, TRADE_NUMERIC_FIELDS)),
+      statsByAsset: statsByAsset.map((s) => coerceNums(s, STATS_NUMERIC_FIELDS)),
     });
   } catch (err) {
     console.error("[traders] Profile fetch failed:", err);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, coerceNums, STATS_NUMERIC_FIELDS } from "@/lib/db";
 import type { RankPeriod, RankSortKey, AssetClass, TradeSide } from "@/lib/social-trading-types";
 import { RANK_MIN_TRADES } from "@/lib/social-trading-types";
 
@@ -99,10 +99,10 @@ export async function GET(req: NextRequest) {
       OFFSET ${offset}
     `;
 
-    // Attach rank numbers
+    // Attach rank numbers + coerce NUMERIC strings to numbers
     const rankings = rows.map((row, i) => ({
       rank: offset + i + 1,
-      ...row,
+      ...coerceNums(row, STATS_NUMERIC_FIELDS),
     }));
 
     return NextResponse.json({

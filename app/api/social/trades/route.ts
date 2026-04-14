@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { query, first } from "@/lib/db";
+import { query, first, coerceNums, TRADE_NUMERIC_FIELDS } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
 /**
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       RETURNING *
     `;
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(coerceNums(rows[0], TRADE_NUMERIC_FIELDS), { status: 201 });
   } catch (err) {
     console.error("[trades] Create failed:", err);
     return NextResponse.json({ error: "Failed to create trade" }, { status: 500 });
@@ -124,7 +124,7 @@ export async function PATCH(req: Request) {
       RETURNING *
     `;
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json(coerceNums(rows[0], TRADE_NUMERIC_FIELDS));
   } catch (err) {
     console.error("[trades] Update failed:", err);
     return NextResponse.json({ error: "Failed to update trade" }, { status: 500 });

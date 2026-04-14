@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, coerceNums, TRADE_NUMERIC_FIELDS } from "@/lib/db";
 
 export const revalidate = 60; // 1 min ISR
 
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     `;
 
     return NextResponse.json({
-      trades: rows,
+      trades: rows.map((r) => coerceNums(r, TRADE_NUMERIC_FIELDS)),
       hasMore: rows.length === limit,
     });
   } catch (err) {

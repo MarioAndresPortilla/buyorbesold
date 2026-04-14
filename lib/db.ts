@@ -64,3 +64,52 @@ export async function dbHealthCheck(): Promise<boolean> {
 export function first<T>(rows: T[]): T | null {
   return rows.length > 0 ? rows[0] : null;
 }
+
+// Neon returns Postgres NUMERIC columns as strings. Callers that do arithmetic
+// or .toFixed() need real numbers — coerce at the API boundary with these.
+
+export function toNum(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+export function coerceNums<T extends Record<string, unknown>>(
+  row: T,
+  fields: readonly string[],
+): T {
+  const out: Record<string, unknown> = { ...row };
+  for (const f of fields) {
+    if (f in out) out[f] = toNum(out[f]);
+  }
+  return out as T;
+}
+
+export const STATS_NUMERIC_FIELDS = [
+  "win_rate",
+  "win_rate_wilson",
+  "total_pnl_pct",
+  "avg_win_pct",
+  "avg_loss_pct",
+  "profit_factor",
+  "expectancy",
+  "avg_r_multiple",
+  "sharpe",
+  "sortino",
+  "max_drawdown_pct",
+  "best_trade_pnl_pct",
+  "worst_trade_pnl_pct",
+] as const;
+
+export const TRADE_NUMERIC_FIELDS = [
+  "size",
+  "entry_price",
+  "exit_price",
+  "stop_price",
+  "target_price",
+  "pnl_pct",
+] as const;
