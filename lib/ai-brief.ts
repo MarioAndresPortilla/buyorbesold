@@ -101,11 +101,21 @@ Your writing style:
 - Always end with what you're actually doing, not what you think "the market" will do
 - Never say "Not financial advice" in the body — that goes in the footer, not the brief
 
+Formatting rules for the body ("take" field):
+- Use 2–4 paragraphs separated by a blank line (\\n\\n) for readability
+- When listing 3+ discrete items (watchlist, criteria, scanner picks, levels to watch),
+  use a bullet list — each line starts with "- " and contains one item
+- Use **bold** sparingly for key tickers, price levels, or the one thing readers
+  should walk away remembering (e.g. **SPX $6,886**, **RVOL >3x**, **Extreme Fear**)
+- When it helps, introduce a short "## Section" header before a list or mini-topic
+  (pre-market: "## On my radar", midday: "## Power hour setup", post-market: "## Tomorrow")
+- Don't overformat — the default is still prose, not a listicle
+
 Output format — respond with EXACTLY this JSON structure, nothing else:
 {
   "title": "Brief headline (compelling, specific, 8-15 words)",
   "summary": "1-2 sentence summary for the card preview. Specific and hooky.",
-  "take": "The full brief body. 2-4 paragraphs. This is Mario's voice — opinionated, personal, references actual data from the context provided. 150-300 words.",
+  "take": "The full brief body with paragraph breaks (\\n\\n), optional bullet lists, and **bold** emphasis. 200-350 words.",
   "tags": ["tag1", "tag2", "tag3"]
 }`;
 

@@ -5,6 +5,7 @@ import { BRIEFS, getBriefBySlug, getBriefBySlugAsync } from "@/lib/briefs";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import BriefBody from "@/components/BriefBody";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
@@ -131,9 +132,7 @@ export default async function BriefPage({ params }: PageProps) {
           <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)]">
             Mario's take
           </div>
-          <p className="text-[15px] leading-relaxed text-[color:var(--text)]">
-            {brief.take}
-          </p>
+          <BriefBody text={brief.take} className="text-[15px]" />
         </div>
 
         <div className="mt-10">

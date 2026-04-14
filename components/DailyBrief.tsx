@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Brief, MarketData } from "@/lib/types";
 import { formatPct, formatPrice } from "@/lib/format";
+import BriefBody from "./BriefBody";
 
 interface DailyBriefProps {
   brief: Brief;
@@ -29,11 +30,11 @@ export default function DailyBrief({ brief, market, compact = false }: DailyBrie
       </p>
 
       {!compact && (
-        <div className="rounded-lg border border-[color:var(--border)]/70 bg-black/20 p-4 text-[14px] leading-relaxed text-[color:var(--text)]">
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)]">
+        <div className="rounded-lg border border-[color:var(--border)]/70 bg-black/20 p-4 text-[color:var(--text)]">
+          <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--accent)]">
             Mario's take
           </div>
-          {brief.take}
+          <BriefBody text={brief.take} />
         </div>
       )}
 
