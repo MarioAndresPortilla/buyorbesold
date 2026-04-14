@@ -207,13 +207,22 @@ export default function MobileMenu({ links, signedIn }: MobileMenuProps) {
                   </button>
                 </form>
               ) : (
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="flex w-full items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
-                >
-                  Sign up free →
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
+                  >
+                    Sign up free →
+                  </Link>
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center justify-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2,var(--surface))] px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+                  >
+                    Log in
+                  </Link>
+                </div>
               )}
               <p className="mt-3 text-center font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--muted)]/70">
                 Not financial advice

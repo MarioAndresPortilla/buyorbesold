@@ -135,12 +135,20 @@ export default async function SiteNav({
                 <LogoutButton />
               </>
             ) : (
-              <Link
-                href="/login"
-                className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-3 py-1 font-bold text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
-              >
-                Sign up
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="px-2 py-1 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-3 py-1 font-bold text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
+                >
+                  Sign up
+                </Link>
+              </>
             )}
           </div>
         </nav>
