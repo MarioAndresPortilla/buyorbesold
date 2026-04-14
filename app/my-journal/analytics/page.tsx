@@ -4,6 +4,9 @@ import { getUser } from "@/lib/auth";
 import { listUserTrades } from "@/lib/kv";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import EquityCurve from "@/components/EquityCurve";
+import MonthlyPnl from "@/components/MonthlyPnl";
+import TradeCalendar from "@/components/TradeCalendar";
 import { SETUP_TYPE_LABELS, computeStats, computeTradeDerived } from "@/lib/journal";
 import { formatPct, formatPrice } from "@/lib/format";
 import type { Trade } from "@/lib/types";
@@ -60,6 +63,15 @@ export default async function MyAnalyticsPage() {
           <Card label="Avg loss" value={stats.losses > 0 ? formatPrice(stats.avgLoss) : "—"} kind="down" />
           <Card label="Avg R" value={stats.avgRMultiple !== undefined ? stats.avgRMultiple.toFixed(2) + "R" : "—"} />
           <Card label="Win:Loss" value={stats.avgLoss !== 0 ? Math.abs(stats.avgWin / stats.avgLoss).toFixed(2) : "—"} />
+        </section>
+
+        {/* Charts */}
+        <section>
+          <EquityCurve trades={raw} />
+        </section>
+        <section className="grid gap-4 lg:grid-cols-2">
+          <MonthlyPnl trades={raw} />
+          <TradeCalendar trades={raw} weeks={26} />
         </section>
 
         {/* Best / Worst */}

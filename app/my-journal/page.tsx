@@ -9,6 +9,8 @@ import type { Trade } from "@/lib/types";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import LogoutButton from "@/components/LogoutButton";
+import EquityCurve from "@/components/EquityCurve";
+import TradeCalendar from "@/components/TradeCalendar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -94,6 +96,16 @@ export default async function MyJournalPage({ searchParams }: PageProps) {
             label="Avg R"
             value={stats.avgRMultiple !== undefined ? stats.avgRMultiple.toFixed(2) + "R" : "—"}
           />
+        </section>
+
+        {/* Charts: equity curve + activity heatmap */}
+        <section className="grid gap-4 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <EquityCurve trades={rawTrades} />
+          </div>
+          <div className="lg:col-span-2">
+            <TradeCalendar trades={rawTrades} weeks={18} />
+          </div>
         </section>
 
         {/* Trades */}
