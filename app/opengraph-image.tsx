@@ -19,8 +19,8 @@ export default async function OgImage() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "#0a0a0a",
-          color: "#e5e7eb",
+          background: "#0b0d11",
+          color: "#e9ecf2",
           padding: 80,
           position: "relative",
         }}
@@ -33,7 +33,7 @@ export default async function OgImage() {
             left: 0,
             right: 0,
             height: 8,
-            background: "#c9a84c",
+            background: "#d4a84a",
           }}
         />
         <div
@@ -44,9 +44,9 @@ export default async function OgImage() {
             width: 96,
             height: 96,
             borderRadius: 16,
-            border: "3px solid #c9a84c",
-            background: "rgba(201,168,76,0.12)",
-            color: "#c9a84c",
+            border: "3px solid #d4a84a",
+            background: "rgba(212,168,74,0.12)",
+            color: "#d4a84a",
             fontSize: 44,
             fontWeight: 700,
             letterSpacing: 2,
@@ -61,7 +61,7 @@ export default async function OgImage() {
             fontSize: 48,
             fontWeight: 700,
             letterSpacing: 6,
-            color: "#e5e7eb",
+            color: "#e9ecf2",
             marginBottom: 16,
           }}
         >
@@ -82,7 +82,7 @@ export default async function OgImage() {
           <div style={{ display: "flex" }}>Markets. Bullion.</div>
           <div style={{ display: "flex", gap: 24 }}>
             <span>Bitcoin.</span>
-            <span style={{ color: "#c9a84c" }}>No noise.</span>
+            <span style={{ color: "#d4a84a" }}>No noise.</span>
           </div>
         </div>
         <div
@@ -90,7 +90,7 @@ export default async function OgImage() {
             display: "flex",
             marginTop: 48,
             fontSize: 20,
-            color: "#9ca3af",
+            color: "#8d94a3",
             letterSpacing: 3,
             textTransform: "uppercase",
           }}

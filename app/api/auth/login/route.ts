@@ -18,22 +18,22 @@ function magicEmailHtml(link: string): string {
   return `
 <!doctype html>
 <html>
-  <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e5e7eb;margin:0;padding:32px;">
-    <div style="max-width:520px;margin:0 auto;background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:32px;">
-      <div style="font-family:monospace;font-size:10px;color:#c9a84c;text-transform:uppercase;letter-spacing:2px;">BUYORBESOLD · ADMIN</div>
-      <h1 style="font-size:24px;margin:8px 0 12px;color:#e5e7eb;">Sign in to the trading journal</h1>
-      <p style="font-size:14px;line-height:1.6;color:#9ca3af;margin:0 0 20px;">
+  <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0b0d11;color:#e9ecf2;margin:0;padding:32px;">
+    <div style="max-width:520px;margin:0 auto;background:#111;border:1px solid #262b36;border-radius:12px;padding:32px;">
+      <div style="font-family:monospace;font-size:10px;color:#d4a84a;text-transform:uppercase;letter-spacing:2px;">BUYORBESOLD</div>
+      <h1 style="font-size:24px;margin:8px 0 12px;color:#e9ecf2;">Your sign-in link</h1>
+      <p style="font-size:14px;line-height:1.6;color:#8d94a3;margin:0 0 20px;">
         Click the button below to sign in. The link expires in 15 minutes.
       </p>
-      <a href="${link}" style="display:inline-block;padding:12px 20px;background:#c9a84c;color:#0a0a0a;font-family:monospace;font-size:12px;font-weight:700;text-decoration:none;border-radius:6px;text-transform:uppercase;letter-spacing:1px;">
+      <a href="${link}" style="display:inline-block;padding:12px 20px;background:#d4a84a;color:#0b0d11;font-family:monospace;font-size:12px;font-weight:700;text-decoration:none;border-radius:6px;text-transform:uppercase;letter-spacing:1px;">
         Sign in →
       </a>
-      <p style="font-size:12px;color:#6b7280;margin:24px 0 0;word-break:break-all;">
+      <p style="font-size:12px;color:#5a6070;margin:24px 0 0;word-break:break-all;">
         Or paste this URL: <br/>
-        <span style="color:#9ca3af;">${link}</span>
+        <span style="color:#8d94a3;">${link}</span>
       </p>
-      <p style="font-size:11px;font-style:italic;color:#6b7280;margin:24px 0 0;border-top:1px solid #1e1e1e;padding-top:16px;">
-        If you didn't request this, ignore this email. Only the admin address can successfully sign in.
+      <p style="font-size:11px;font-style:italic;color:#5a6070;margin:24px 0 0;border-top:1px solid #262b36;padding-top:16px;">
+        If you didn't request this, ignore this email — someone may have entered your address by mistake. No action will be taken unless you click the link.
       </p>
     </div>
   </body>

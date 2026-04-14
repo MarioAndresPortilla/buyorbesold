@@ -7,15 +7,15 @@
  */
 
 export const EMAIL_COLORS = {
-  bg: "#0a0a0a",
-  surface: "#111111",
-  border: "#1e1e1e",
-  text: "#e5e7eb",
-  muted: "#9ca3af",
-  subtle: "#6b7280",
-  accent: "#c9a84c",
-  up: "#22c55e",
-  down: "#ef4444",
+  bg: "#0b0d11",
+  surface: "#14171d",
+  border: "#262b36",
+  text: "#e9ecf2",
+  muted: "#8d94a3",
+  subtle: "#5a6070",
+  accent: "#d4a84a",
+  up: "#2ecc71",
+  down: "#f25c5c",
 } as const;
 
 export const SITE_URL =

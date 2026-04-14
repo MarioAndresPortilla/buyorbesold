@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
-  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="#c9a84c" stroke-width="2.5"/>
+  <rect width="64" height="64" rx="12" fill="#0b0d11"/>
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="#d4a84a" stroke-width="2.5"/>
   <text
     x="32"
     y="38"
@@ -8,7 +8,7 @@
     font-family="'Bebas Neue', Impact, sans-serif"
     font-size="26"
     font-weight="700"
-    fill="#c9a84c"
+    fill="#d4a84a"
     letter-spacing="1"
   >B/S</text>
 </svg>

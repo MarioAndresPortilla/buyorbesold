@@ -7,7 +7,7 @@ export default function DashboardLoading() {
       <SiteNav maxWidth="max-w-[1400px]" />
 
       {/* Ticker tape placeholder */}
-      <div className="h-10 w-full animate-pulse border-y border-[color:var(--border)] bg-[#0a0a0a]" />
+      <div className="h-10 w-full animate-pulse border-y border-[color:var(--border)] bg-[#0b0d11]" />
 
       <main className="mx-auto max-w-[1400px] space-y-6 px-4 py-6">
         {/* Brief + Fear & Greed (dual) */}

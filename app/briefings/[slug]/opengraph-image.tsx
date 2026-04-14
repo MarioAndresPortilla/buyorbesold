@@ -37,8 +37,8 @@ export default async function OgImage({
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: "#0a0a0a",
-          color: "#e5e7eb",
+          background: "#0b0d11",
+          color: "#e9ecf2",
           padding: 72,
           position: "relative",
         }}
@@ -51,7 +51,7 @@ export default async function OgImage({
             left: 0,
             right: 0,
             height: 8,
-            background: "#c9a84c",
+            background: "#d4a84a",
           }}
         />
 
@@ -72,9 +72,9 @@ export default async function OgImage({
               width: 72,
               height: 72,
               borderRadius: 12,
-              border: "2px solid #c9a84c",
-              background: "rgba(201,168,76,0.12)",
-              color: "#c9a84c",
+              border: "2px solid #d4a84a",
+              background: "rgba(212,168,74,0.12)",
+              color: "#d4a84a",
               fontSize: 34,
               fontWeight: 700,
               letterSpacing: 2,
@@ -89,7 +89,7 @@ export default async function OgImage({
                 fontSize: 36,
                 fontWeight: 700,
                 letterSpacing: 4,
-                color: "#e5e7eb",
+                color: "#e9ecf2",
               }}
             >
               BUYORBESOLD
@@ -99,7 +99,7 @@ export default async function OgImage({
                 display: "flex",
                 fontSize: 16,
                 letterSpacing: 3,
-                color: "#9ca3af",
+                color: "#8d94a3",
                 textTransform: "uppercase",
                 marginTop: 2,
               }}
@@ -142,9 +142,9 @@ export default async function OgImage({
                   display: "flex",
                   padding: "8px 16px",
                   borderRadius: 999,
-                  border: "1px solid rgba(201,168,76,0.4)",
-                  background: "rgba(201,168,76,0.12)",
-                  color: "#c9a84c",
+                  border: "1px solid rgba(212,168,74,0.4)",
+                  background: "rgba(212,168,74,0.12)",
+                  color: "#d4a84a",
                   textTransform: "uppercase",
                   letterSpacing: 2,
                   fontSize: 14,
@@ -158,7 +158,7 @@ export default async function OgImage({
           <div
             style={{
               display: "flex",
-              color: "#6b7280",
+              color: "#5a6070",
               fontStyle: "italic",
               fontSize: 16,
             }}

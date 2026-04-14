@@ -11,7 +11,7 @@ export default function TickerTape({ tickers }: TickerTapeProps) {
   const doubled = [...tickers, ...tickers];
 
   return (
-    <div className="w-full overflow-hidden border-y border-[color:var(--border)] bg-[#0a0a0a]">
+    <div className="w-full overflow-hidden border-y border-[color:var(--border)] bg-[#0b0d11]">
       <div className="flex animate-tape whitespace-nowrap py-2.5">
         {doubled.map((t, idx) => {
           const up = t.changePct >= 0;

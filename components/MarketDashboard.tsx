@@ -273,7 +273,7 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
         </section>
 
         <footer className="border-t border-[color:var(--border)]/70 pt-6 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-          Not financial advice. Do your own research. Data cached 60s · sources: Yahoo Finance, CoinGecko, Finnhub, alternative.me
+          Not financial advice. Do your own research. Sources: Yahoo Finance, CoinGecko, Finnhub, alternative.me
         </footer>
       </main>
     </div>

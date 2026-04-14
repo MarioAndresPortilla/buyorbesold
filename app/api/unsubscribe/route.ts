@@ -24,8 +24,8 @@ function page(body: string): Response {
       body {
         margin: 0;
         padding: 48px 20px;
-        background: #0a0a0a;
-        color: #e5e7eb;
+        background: #0b0d11;
+        color: #e9ecf2;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         line-height: 1.55;
       }
@@ -33,14 +33,14 @@ function page(body: string): Response {
         max-width: 480px;
         margin: 0 auto;
         background: #111;
-        border: 1px solid #1e1e1e;
+        border: 1px solid #262b36;
         border-radius: 12px;
         padding: 32px;
       }
-      h1 { font-size: 22px; color: #c9a84c; margin: 0 0 12px; }
-      p { color: #9ca3af; font-size: 14px; }
-      a { color: #c9a84c; }
-      .small { font-size: 11px; color: #6b7280; font-style: italic; margin-top: 24px; border-top: 1px solid #1e1e1e; padding-top: 16px; }
+      h1 { font-size: 22px; color: #d4a84a; margin: 0 0 12px; }
+      p { color: #8d94a3; font-size: 14px; }
+      a { color: #d4a84a; }
+      .small { font-size: 11px; color: #5a6070; font-style: italic; margin-top: 24px; border-top: 1px solid #262b36; padding-top: 16px; }
     </style>
   </head>
   <body><div class="card">${body}</div></body>
