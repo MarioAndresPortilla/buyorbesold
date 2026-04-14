@@ -93,6 +93,16 @@ body[data-theme="light"] .font-bebas {
   animation-play-state: paused;
 }
 
+/* Mobile menu drawer slide-in */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* Loading skeleton shimmer — works on both themes since it uses
    the themed --border variable for its pulse color. */
 @keyframes shimmer {

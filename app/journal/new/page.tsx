@@ -33,6 +33,7 @@ export default async function NewTradePage() {
           { href: "/journal", label: "Overview" },
           { href: "/journal/new", label: "Log Trade" },
           { href: "/journal/analytics", label: "Analytics" },
+          { href: "/journal/chat", label: "Analyst" },
         ]}
       />
 

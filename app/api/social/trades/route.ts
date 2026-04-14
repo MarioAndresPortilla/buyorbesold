@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
 import { query, first } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 /**
  * POST /api/social/trades — Create a new trade
- * Requires authentication.
+ *
+ * Open to any logged-in trader. The trader must have a profile in the
+ * `traders` table (created via /onboarding). The trade is owned by the
+ * caller — we resolve trader_id from the session email, never from the
+ * request body.
  */
 export async function POST(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
-    const body = await req.json();
-
-    // Find the trader by session email
     const trader = first(
       await query<{ id: string }>`SELECT id FROM traders WHERE email = ${session.sub}`
     );
     if (!trader) {
-      return NextResponse.json({ error: "Trader profile not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Trader profile not found. Visit /onboarding to set one up." },
+        { status: 404 }
+      );
     }
 
+    const body = await req.json();
     const {
       symbol,
       asset_class,
@@ -38,10 +45,12 @@ export async function POST(req: Request) {
       tags = [],
     } = body;
 
-    // Validation
     if (!symbol || !asset_class || !side || !strategy || !size || !entry_price || !entry_date) {
       return NextResponse.json(
-        { error: "Missing required fields: symbol, asset_class, side, strategy, size, entry_price, entry_date" },
+        {
+          error:
+            "Missing required fields: symbol, asset_class, side, strategy, size, entry_price, entry_date",
+        },
         { status: 400 }
       );
     }
@@ -69,12 +78,14 @@ export async function POST(req: Request) {
 }
 
 /**
- * PATCH /api/social/trades — Update a trade (close it, adjust stop/target)
- * Body: { id, exit_price?, exit_date?, stop_price?, target_price?, thesis?, tags? }
+ * PATCH /api/social/trades — Update a trade (close it, adjust stop/target).
+ * Only the trade owner can update it.
  */
 export async function PATCH(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
     const body = await req.json();
@@ -84,7 +95,6 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Trade id required" }, { status: 400 });
     }
 
-    // Verify ownership
     const trader = first(
       await query<{ id: string }>`SELECT id FROM traders WHERE email = ${session.sub}`
     );
@@ -96,7 +106,10 @@ export async function PATCH(req: Request) {
       await query<{ trader_id: string }>`SELECT trader_id FROM social_trades WHERE id = ${id}`
     );
     if (!existing || existing.trader_id !== trader.id) {
-      return NextResponse.json({ error: "Trade not found or not owned by you" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Trade not found or not owned by you" },
+        { status: 404 }
+      );
     }
 
     const rows = await query`

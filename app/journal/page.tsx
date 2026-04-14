@@ -51,6 +51,7 @@ export default async function JournalPage({ searchParams }: PageProps) {
         items={[
           { href: "/journal", label: "Overview" },
           { href: "/journal/analytics", label: "Analytics" },
+          { href: "/journal/chat", label: "Analyst" },
           ...(admin ? [{ href: "/journal/new", label: "Log Trade" }] : []),
         ]}
       />

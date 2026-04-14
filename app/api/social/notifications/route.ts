@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { query, first } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import type { Notification } from "@/lib/social-trading-types";
 
 /**
@@ -14,8 +14,10 @@ import type { Notification } from "@/lib/social-trading-types";
  * Returns: { notifications: Notification[], unread_count: number }
  */
 export async function GET(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
     const trader = first(
@@ -73,8 +75,10 @@ export async function GET(req: Request) {
  * Only affects notifications owned by the authenticated user.
  */
 export async function PATCH(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
     const trader = first(

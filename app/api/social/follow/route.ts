@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { query, first } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 /**
  * POST /api/social/follow — Follow a trader
  * Body: { followee_id, notify_mode? }
+ *
+ * Open to any logged-in trader with a profile.
  */
 export async function POST(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
     const { followee_id, notify_mode = "realtime" } = await req.json();
@@ -21,14 +25,16 @@ export async function POST(req: Request) {
       await query<{ id: string }>`SELECT id FROM traders WHERE email = ${session.sub}`
     );
     if (!trader) {
-      return NextResponse.json({ error: "Trader profile not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Trader profile not found. Visit /onboarding to set one up." },
+        { status: 404 }
+      );
     }
 
     if (trader.id === followee_id) {
       return NextResponse.json({ error: "Cannot follow yourself" }, { status: 400 });
     }
 
-    // Upsert — idempotent
     await query`
       INSERT INTO follows (follower_id, followee_id, notify_mode)
       VALUES (${trader.id}, ${followee_id}, ${notify_mode})
@@ -48,8 +54,10 @@ export async function POST(req: Request) {
  * Body: { followee_id }
  */
 export async function DELETE(req: Request) {
-  const session = await requireAdmin();
-  if (session instanceof NextResponse) return session;
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "not authenticated" }, { status: 401 });
+  }
 
   try {
     const { followee_id } = await req.json();

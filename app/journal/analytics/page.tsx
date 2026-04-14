@@ -47,6 +47,7 @@ export default async function AnalyticsPage() {
         items={[
           { href: "/journal", label: "Overview" },
           { href: "/journal/analytics", label: "Analytics" },
+          { href: "/journal/chat", label: "Analyst" },
         ]}
       />
 
