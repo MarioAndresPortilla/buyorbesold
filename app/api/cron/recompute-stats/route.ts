@@ -54,6 +54,19 @@ interface TradeRow {
   updated_at: string;
 }
 
+/**
+ * Coerce a value Postgres might return for a TIMESTAMPTZ column (Date,
+ * string, or null) into an ISO 8601 string. The stats engine treats
+ * dates as strings (uses .slice(0,10) etc.), so a Date object would
+ * crash with "x.slice is not a function".
+ */
+function toIso(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value;
+  return String(value);
+}
+
 function mapRowToTrade(row: TradeRow): SocialTrade {
   return {
     id: row.id,
@@ -66,9 +79,9 @@ function mapRowToTrade(row: TradeRow): SocialTrade {
     size: Number(row.size),
     sizeUnit: row.size_unit ?? undefined,
     entryPrice: Number(row.entry_price),
-    entryDate: row.entry_date,
+    entryDate: toIso(row.entry_date)!,
     exitPrice: row.exit_price ? Number(row.exit_price) : undefined,
-    exitDate: row.exit_date ?? undefined,
+    exitDate: toIso(row.exit_date),
     stopPrice: row.stop_price ? Number(row.stop_price) : undefined,
     targetPrice: row.target_price ? Number(row.target_price) : undefined,
     thesis: row.thesis ?? undefined,
@@ -76,8 +89,8 @@ function mapRowToTrade(row: TradeRow): SocialTrade {
     verification: row.verification as SocialTrade["verification"],
     commentCount: row.comment_count,
     reactionCount: row.reaction_count,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toIso(row.created_at)!,
+    updatedAt: toIso(row.updated_at)!,
   };
 }
 
