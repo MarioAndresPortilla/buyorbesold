@@ -28,14 +28,35 @@ export default function NewsletterPage() {
           The BuyOrBeSold daily brief covers the S&amp;P 500, bitcoin, gold, silver,
           commodities, and the macro that actually moves them — plus my personal take on
           what I'm watching and why. No pumping. No affiliate bait. No 40-email sales
-          funnels.
+          funnels. Three editions per day: pre-market (9am ET), midday (12pm), post-market (4pm).
         </p>
 
         <div className="mt-10">
           <NewsletterSignup
-            heading="Subscribe"
+            heading="Subscribe by email"
             sub="Delivered weekday mornings. Unsubscribe anytime."
           />
+        </div>
+
+        {/* Alternative: RSS reader for power users */}
+        <div className="mt-6 rounded-xl border border-[color:var(--border)]/70 bg-[color:var(--surface)]/50 p-5">
+          <div className="flex flex-col gap-3 xs:flex-row xs:items-center xs:justify-between">
+            <div>
+              <h3 className="font-bebas text-lg tracking-wide">
+                Prefer a feed reader?
+              </h3>
+              <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--muted)]">
+                Every brief also goes out over an RSS feed. Drop this URL into
+                Feedly, Reeder, Inoreader, or any feed reader:
+              </p>
+            </div>
+            <a
+              href="/rss.xml"
+              className="shrink-0 rounded-md border border-[color:var(--border)] bg-black/20 px-3 py-2 font-mono text-[11px] text-[color:var(--accent)] transition-colors hover:border-[color:var(--accent)]"
+            >
+              /rss.xml ↗
+            </a>
+          </div>
         </div>
 
         <div className="mt-10 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6">

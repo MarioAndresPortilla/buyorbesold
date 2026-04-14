@@ -30,14 +30,14 @@ export default function SiteFooter({ sub }: SiteFooterProps) {
           </span>
         </div>
 
-        {/* Subscribe / feeds — the only non-header utility links */}
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--muted)] xs:gap-x-5 xs:text-[11px]">
-          <Link href="/newsletter" className="transition-colors hover:text-[color:var(--accent)]">
-            Newsletter
+        {/* Single subscribe CTA — /newsletter covers email AND RSS */}
+        <div className="mb-4 flex items-center justify-center">
+          <Link
+            href="/newsletter"
+            className="rounded-md border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-4 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20 xs:text-[11px]"
+          >
+            Subscribe to the daily brief
           </Link>
-          <a href="/rss.xml" className="transition-colors hover:text-[color:var(--accent)]">
-            RSS
-          </a>
         </div>
 
         {/* Divider */}

@@ -1,7 +1,7 @@
-import { getBriefs } from "@/lib/briefs";
+import { getAllBriefs } from "@/lib/briefs";
 
 export const runtime = "nodejs";
-export const revalidate = 300;
+export const revalidate = 60;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
@@ -25,7 +25,10 @@ function rfc822(dateStr: string): string {
 }
 
 export async function GET() {
-  const briefs = getBriefs();
+  // Use async version so AI-generated briefs (stored in KV) show up too,
+  // not just the hand-written markdown ones. Cap at 50 most recent so the
+  // feed file stays lean.
+  const briefs = (await getAllBriefs()).slice(0, 50);
   const buildDate = rfc822(briefs[0]?.date ?? new Date().toISOString());
 
   const items = briefs
@@ -60,7 +63,7 @@ ${items}
   return new Response(xml, {
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
     },
   });
 }
