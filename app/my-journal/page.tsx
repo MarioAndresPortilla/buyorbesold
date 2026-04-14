@@ -8,7 +8,7 @@ import { arrow, formatPct, formatPrice } from "@/lib/format";
 import type { Trade } from "@/lib/types";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import LogoutButton from "@/components/LogoutButton";
+import SubNav from "@/components/SubNav";
 import EquityCurve from "@/components/EquityCurve";
 import TradeCalendar from "@/components/TradeCalendar";
 
@@ -35,14 +35,15 @@ export default async function MyJournalPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav
+      <SiteNav maxWidth="max-w-[1100px]" />
+      <SubNav
+        section="My Journal"
         maxWidth="max-w-[1100px]"
-        links={[
-          { href: "/scanner", label: "Scanner" },
-          { href: "/journal", label: "Mario's Log", short: "Log" },
-          { href: "/my-journal/analytics", label: "My Stats", hideBelow: "xs" },
+        items={[
+          { href: "/my-journal", label: "Overview" },
+          { href: "/my-journal/new", label: "Log Trade" },
+          { href: "/my-journal/analytics", label: "Analytics" },
         ]}
-        trailing={<LogoutButton />}
       />
 
       <main className="mx-auto max-w-[1100px] space-y-6 px-4 py-8 xs:py-10">

@@ -4,6 +4,7 @@ import { getUser } from "@/lib/auth";
 import { isKvAvailable } from "@/lib/kv";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 import UserTradeForm from "@/components/UserTradeForm";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +21,15 @@ export default async function MyJournalNewPage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav
+      <SiteNav maxWidth="max-w-[760px]" />
+      <SubNav
+        section="My Journal"
         maxWidth="max-w-[760px]"
-        links={[{ href: "/my-journal", label: "← My Journal" }]}
+        items={[
+          { href: "/my-journal", label: "Overview" },
+          { href: "/my-journal/new", label: "Log Trade" },
+          { href: "/my-journal/analytics", label: "Analytics" },
+        ]}
       />
       <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
         <h1 className="font-bebas text-4xl tracking-wide xs:text-5xl">Log a trade</h1>

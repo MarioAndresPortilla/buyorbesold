@@ -19,12 +19,7 @@ export default async function TraderPage({ params }: PageProps) {
 
   return (
     <>
-      <SiteNav
-        extra={[
-          { href: "/rankings", label: "Rankings" },
-          { href: "/feed", label: "Feed" },
-        ]}
-      />
+      <SiteNav />
       <main className="mx-auto max-w-[1200px] px-3 py-6 xs:px-4">
         <TraderProfile username={username} />
       </main>

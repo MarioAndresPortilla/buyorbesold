@@ -6,6 +6,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import BriefBody from "@/components/BriefBody";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
@@ -88,22 +89,17 @@ export default async function BriefPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <SiteNav
+      <SiteNav maxWidth="max-w-[760px]" />
+      <Breadcrumbs
         maxWidth="max-w-[760px]"
-        links={[
-          { href: "/briefings", label: "All briefs", short: "Briefs" },
-          { href: "/scanner", label: "Scanner" },
-          { href: "/journal", label: "Journal", hideBelow: "xs" },
+        items={[
+          { href: "/", label: "Home" },
+          { href: "/briefings", label: "Briefings" },
+          { label: brief.title },
         ]}
       />
 
-      <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
-        <Link
-          href="/briefings"
-          className="font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--muted)] hover:text-[color:var(--accent)]"
-        >
-          ← All briefings
-        </Link>
+      <main className="mx-auto max-w-[760px] px-4 py-8 xs:py-10">
 
         <div className="mt-6">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">

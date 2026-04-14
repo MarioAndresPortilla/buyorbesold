@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 import { isAdmin, isAuthConfigured } from "@/lib/auth";
 import { isKvAvailable } from "@/lib/kv";
 import NewTradeForm from "@/components/NewTradeForm";
@@ -25,7 +25,16 @@ export default async function NewTradePage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav maxWidth="max-w-[760px]" links={[{href: "/journal", label: "← Journal"}]} />
+      <SiteNav maxWidth="max-w-[760px]" />
+      <SubNav
+        section="Mario's Journal"
+        maxWidth="max-w-[760px]"
+        items={[
+          { href: "/journal", label: "Overview" },
+          { href: "/journal/new", label: "Log Trade" },
+          { href: "/journal/analytics", label: "Analytics" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[760px] px-4 py-10 xs:py-12">
         <h1 className="font-bebas text-4xl tracking-wide xs:text-5xl">

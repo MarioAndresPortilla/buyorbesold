@@ -11,9 +11,7 @@ export const metadata: Metadata = {
 export default function FeedPage() {
   return (
     <>
-      <SiteNav
-        extra={[{ href: "/rankings", label: "Rankings" }]}
-      />
+      <SiteNav />
       <main className="mx-auto max-w-[1200px] px-3 py-6 xs:px-4">
         <div className="flex items-baseline gap-3 mb-6">
           <h1 className="font-bebas text-2xl tracking-wider">Trades</h1>

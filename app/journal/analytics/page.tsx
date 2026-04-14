@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { listTrades } from "@/lib/kv";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 import EquityCurve from "@/components/EquityCurve";
 import MonthlyPnl from "@/components/MonthlyPnl";
 import TradeCalendar from "@/components/TradeCalendar";
@@ -40,7 +40,15 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav maxWidth="max-w-[1000px]" links={[{href: "/journal", label: "← Journal"}]} />
+      <SiteNav maxWidth="max-w-[1000px]" />
+      <SubNav
+        section="Mario's Journal"
+        maxWidth="max-w-[1000px]"
+        items={[
+          { href: "/journal", label: "Overview" },
+          { href: "/journal/analytics", label: "Analytics" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[1000px] space-y-6 px-4 py-10 xs:py-12">
         <div>

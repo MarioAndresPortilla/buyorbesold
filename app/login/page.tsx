@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -30,7 +29,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav maxWidth="max-w-[620px]" links={[{href: "/journal", label: "Journal →"}]} />
+      <SiteNav maxWidth="max-w-[620px]" />
 
       <main className="mx-auto max-w-[520px] px-4 py-16">
         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--accent)]">

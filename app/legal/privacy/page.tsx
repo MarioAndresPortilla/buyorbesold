@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -15,6 +16,14 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <SiteNav maxWidth="max-w-[760px]" />
+      <SubNav
+        section="Legal"
+        maxWidth="max-w-[760px]"
+        items={[
+          { href: "/legal/privacy", label: "Privacy" },
+          { href: "/legal/terms", label: "Terms" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[720px] px-4 py-10 xs:py-12">
         <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--muted)]">

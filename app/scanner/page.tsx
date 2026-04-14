@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 import { runScanner, parseCriteria } from "@/lib/scanner";
 import { enrichWatchlist } from "@/lib/watchlist";
 import type { SetupCandidate, WatchlistEntry } from "@/lib/types";
@@ -43,6 +44,13 @@ export default async function ScannerPage({ searchParams }: PageProps) {
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       <SiteNav />
+      <SubNav
+        section="Scanner"
+        items={[
+          { href: "/scanner", label: "Today's Setups" },
+          { href: "/scanner/history", label: "Archive" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[1200px] space-y-6 px-4 py-8 xs:py-10">
         {/* Title row */}

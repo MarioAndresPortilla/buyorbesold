@@ -4,6 +4,7 @@ import { getUser } from "@/lib/auth";
 import { listUserTrades } from "@/lib/kv";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import SubNav from "@/components/SubNav";
 import EquityCurve from "@/components/EquityCurve";
 import MonthlyPnl from "@/components/MonthlyPnl";
 import TradeCalendar from "@/components/TradeCalendar";
@@ -36,9 +37,15 @@ export default async function MyAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav
+      <SiteNav maxWidth="max-w-[1000px]" />
+      <SubNav
+        section="My Journal"
         maxWidth="max-w-[1000px]"
-        links={[{ href: "/my-journal", label: "← My Journal" }]}
+        items={[
+          { href: "/my-journal", label: "Overview" },
+          { href: "/my-journal/new", label: "Log Trade" },
+          { href: "/my-journal/analytics", label: "Analytics" },
+        ]}
       />
       <main className="mx-auto max-w-[1000px] space-y-6 px-4 py-10 xs:py-12">
         <div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isKvAvailable, loadScannerArchive } from "@/lib/kv";
 import SiteNav from "@/components/SiteNav";
+import SubNav from "@/components/SubNav";
 import { arrow, formatPct, formatPrice } from "@/lib/format";
 import type { SetupCandidate } from "@/lib/types";
 
@@ -19,7 +20,15 @@ export default async function ScannerHistoryPage() {
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
-      <SiteNav maxWidth="max-w-[1000px]" links={[{href: "/scanner", label: "Scanner"}, {href: "/dashboard", label: "Dashboard", short: "Dash"}]} />
+      <SiteNav maxWidth="max-w-[1000px]" />
+      <SubNav
+        section="Scanner"
+        maxWidth="max-w-[1000px]"
+        items={[
+          { href: "/scanner", label: "Today's Setups" },
+          { href: "/scanner/history", label: "Archive" },
+        ]}
+      />
 
       <main className="mx-auto max-w-[1000px] space-y-6 px-4 py-10 xs:py-12">
         <div>
