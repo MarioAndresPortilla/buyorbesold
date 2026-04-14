@@ -67,6 +67,12 @@ export default async function SiteNav({
       hideBelow: "lg",
       matches: ["/feed"],
     },
+    {
+      href: "/congress",
+      label: "Congress",
+      hideBelow: "lg",
+      matches: ["/congress"],
+    },
   ];
 
   function isActive(link: NavLink): boolean {

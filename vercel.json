@@ -20,6 +20,14 @@
     {
       "path": "/api/cron/recompute-stats",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-congress",
+      "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/cron/recompute-congress-stats",
+      "schedule": "0 7 * * *"
     }
   ]
 }
