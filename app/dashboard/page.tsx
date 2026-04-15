@@ -1,4 +1,5 @@
 import MarketDashboard from "@/components/MarketDashboard";
+import SiteNav from "@/components/SiteNav";
 import { getLatestBriefAsync } from "@/lib/briefs";
 import { fetchAllMarkets } from "@/lib/markets";
 
@@ -15,5 +16,10 @@ export default async function DashboardPage() {
     getLatestBriefAsync(),
   ]);
 
-  return <MarketDashboard initialData={market} brief={brief} />;
+  return (
+    <>
+      <SiteNav />
+      <MarketDashboard initialData={market} brief={brief} />
+    </>
+  );
 }

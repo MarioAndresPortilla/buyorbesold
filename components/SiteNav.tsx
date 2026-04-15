@@ -4,9 +4,11 @@ import { getUser, getAdminEmail } from "@/lib/auth";
 import NotificationBell from "./NotificationBell";
 import LogoutButton from "./LogoutButton";
 import MobileMenu from "./MobileMenu";
+import ThemeToggle from "./ThemeToggle";
+import GlobalTickerTape from "./GlobalTickerTape";
 
 interface SiteNavProps {
-  /** Container max-width class. Default 1400px for wide pages. */
+  /** @deprecated Header width is now fixed site-wide. Prop is ignored. */
   maxWidth?: string;
 }
 
@@ -20,18 +22,13 @@ interface NavLink {
 }
 
 /**
- * The canonical site navigation.
+ * The canonical site navigation — identical on every page.
  *
- * Two modes based on viewport:
- *   - Below md (<768px): compact logo + hamburger → MobileMenu drawer
- *   - md and up: horizontal nav with active-page underline
- *
- * Same link set in both. "Journal" routes to /my-journal when logged in.
- * Active page gets gold accent + underline (desktop) or gold bg (mobile).
+ * Layout is fixed-width (1600px) and never reflows between routes. The ticker
+ * tape renders on every page; per-route "LIVE/Refresh" controls live inside
+ * the page content, not the header.
  */
-export default async function SiteNav({
-  maxWidth = "max-w-[1400px]",
-}: SiteNavProps) {
+export default async function SiteNav(_props: SiteNavProps = {}) {
   const user = await getUser().catch(() => null);
   const adminEmail = getAdminEmail();
   const hdrs = await headers();
@@ -83,10 +80,8 @@ export default async function SiteNav({
 
   return (
     <header className="sticky top-0 z-30 border-b border-[color:var(--border)] bg-[color:var(--bg)]/92 backdrop-blur-md">
-      <div
-        className={`mx-auto flex items-center justify-between gap-3 px-3 py-2.5 xs:px-4 xs:py-3 ${maxWidth}`}
-      >
-        {/* Logo */}
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-2.5 xs:gap-3 xs:px-4 xs:py-3">
+        {/* Logo — two-line with subtitle, matches dashboard identity */}
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-80 xs:gap-3"
@@ -94,8 +89,13 @@ export default async function SiteNav({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 font-bebas text-base tracking-wider text-[color:var(--accent)] xs:h-9 xs:w-9 xs:text-lg">
             B/S
           </span>
-          <span className="truncate font-bebas text-base tracking-wider xs:text-lg sm:text-xl">
-            BUYORBESOLD
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="truncate font-bebas text-base tracking-wider xs:text-lg sm:text-xl">
+              BUYORBESOLD
+            </span>
+            <span className="hidden truncate font-mono text-[9px] uppercase tracking-[0.2em] text-[color:var(--muted)] xs:inline">
+              Markets · Bullion · Bitcoin
+            </span>
           </span>
         </Link>
 
@@ -132,47 +132,49 @@ export default async function SiteNav({
               </Link>
             );
           })}
-
-          {/* Desktop trailing */}
-          <div className="ml-2 flex items-center gap-2 border-l border-[color:var(--border)]/60 pl-3">
-            {user ? (
-              <>
-                <NotificationBell />
-                <LogoutButton />
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-2 py-1 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-3 py-1 font-bold text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
-                >
-                  Sign up
-                </Link>
-              </>
-            )}
-          </div>
         </nav>
 
-        {/* Mobile trailing — hamburger + notification bell (if signed in) */}
-        <div className="flex shrink-0 items-center gap-2 md:hidden">
-          {user && <NotificationBell />}
-          <MobileMenu
-            links={links.map((l) => ({
-              href: l.href,
-              label: l.label,
-              matches: l.matches,
-            }))}
-            signedIn={!!user}
-            adminEmail={adminEmail}
-          />
+        {/* Trailing controls — desktop: full set; mobile: theme + bell + hamburger */}
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
+          {user ? (
+            <>
+              <NotificationBell />
+              <span className="hidden md:inline-flex">
+                <LogoutButton />
+              </span>
+            </>
+          ) : (
+            <span className="hidden items-center gap-2 md:inline-flex">
+              <Link
+                href="/login"
+                className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[color:var(--accent)] transition-colors hover:bg-[color:var(--accent)]/20"
+              >
+                Sign up
+              </Link>
+            </span>
+          )}
+          <span className="md:hidden">
+            <MobileMenu
+              links={links.map((l) => ({
+                href: l.href,
+                label: l.label,
+                matches: l.matches,
+              }))}
+              signedIn={!!user}
+              adminEmail={adminEmail}
+            />
+          </span>
         </div>
       </div>
+
+      <GlobalTickerTape />
     </header>
   );
 }
