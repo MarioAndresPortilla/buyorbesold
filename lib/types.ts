@@ -25,6 +25,19 @@ export interface DualFearGreed {
   crypto: FearGreed;
 }
 
+export interface MacroStats {
+  /** BTC share of total crypto market cap, percent (e.g. 59.4). */
+  btcDominance: number;
+  /** 24h change in BTC dominance, percentage points. */
+  btcDominanceDelta: number;
+  /** Total crypto market cap in USD. */
+  cryptoMktCap: number;
+  /** 24h percent change in total crypto market cap. */
+  cryptoMktCapChangePct: number;
+  /** True when CoinGecko /global failed and values are last-known/zero. */
+  stale?: boolean;
+}
+
 export interface MarketData {
   sp500: Ticker;
   bitcoin: Ticker;
@@ -40,6 +53,8 @@ export interface MarketData {
   dia: Ticker;
   dxy: Ticker;
   tnx: Ticker;
+  vix: Ticker;
+  macro: MacroStats;
   sectors: Sector[];
   fearGreed: DualFearGreed;
   updatedAt: string;

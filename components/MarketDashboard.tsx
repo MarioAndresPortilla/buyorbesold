@@ -12,6 +12,7 @@ import MacroCalendar from "./MacroCalendar";
 import DailyBrief from "./DailyBrief";
 import Sparkline from "./Sparkline";
 import RangeBar from "./RangeBar";
+import UserWatchlist from "./UserWatchlist";
 
 interface MarketDashboardProps {
   initialData: MarketData;
@@ -21,6 +22,14 @@ interface MarketDashboardProps {
 type Theme = "dark" | "light";
 
 const THEME_KEY = "bobs-theme";
+
+const NAV_ITEMS = [
+  { href: "/briefings", label: "Briefings" },
+  { href: "/scanner", label: "Scanner" },
+  { href: "/journal", label: "Journal" },
+  { href: "/congress", label: "Congress" },
+  { href: "/feed", label: "Feed" },
+];
 
 export default function MarketDashboard({ initialData, brief }: MarketDashboardProps) {
   const [data, setData] = useState<MarketData>(initialData);
@@ -113,6 +122,18 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
             </div>
           </Link>
 
+          <nav className="hidden flex-1 items-center justify-center gap-6 lg:flex">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-[13px] font-medium text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
           <div className="flex shrink-0 items-center gap-1.5 xs:gap-3">
             <span className="hidden items-center gap-2 md:flex">
               <span className="relative flex h-2 w-2">
@@ -148,6 +169,17 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
             </button>
           </div>
         </div>
+        <nav className="flex gap-5 overflow-x-auto border-t border-[color:var(--border)]/60 px-4 py-2 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="shrink-0 text-[12px] font-medium text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         <TickerTape tickers={tapeTickers} />
       </header>
 
@@ -216,6 +248,9 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
             </div>
           </Panel>
         </section>
+
+        {/* Row 3.5: User watchlist */}
+        <UserWatchlist />
 
         {/* Row 4: Heatmap + Macro calendar */}
         <section className="grid gap-5 lg:grid-cols-2">

@@ -68,8 +68,9 @@ function sma(values: number[], period: number): number | undefined {
   return slice.reduce((a, b) => a + b, 0) / period;
 }
 
-export async function enrichWatchlist(): Promise<WatchlistEntry[]> {
-  const { items } = loadWatchlistFile();
+export async function enrichSymbols(
+  items: WatchlistItem[]
+): Promise<WatchlistEntry[]> {
   if (!items.length) return [];
 
   const enriched = await Promise.all(
@@ -89,7 +90,6 @@ export async function enrichWatchlist(): Promise<WatchlistEntry[]> {
         );
         const sma50 = sma(closes, 50);
         const sma200 = sma(closes, 200);
-        // 10-day avg volume for RVOL
         const last10 = vols.slice(-11, -1);
         const avgVol10 = last10.length
           ? last10.reduce((a, b) => a + b, 0) / last10.length
@@ -117,4 +117,29 @@ export async function enrichWatchlist(): Promise<WatchlistEntry[]> {
   );
 
   return enriched.filter((e): e is WatchlistEntry => e !== null);
+}
+
+export async function enrichWatchlist(): Promise<WatchlistEntry[]> {
+  const { items } = loadWatchlistFile();
+  return enrichSymbols(items);
+}
+
+/**
+ * Validate that a symbol resolves on Yahoo before we accept it into a user's
+ * watchlist. Returns the canonical uppercase symbol + display name on success.
+ */
+export async function validateSymbol(
+  raw: string
+): Promise<{ symbol: string; name?: string } | null> {
+  const symbol = raw.trim().toUpperCase();
+  if (!symbol || symbol.length > 16 || !/^[A-Z0-9.\-^]+$/.test(symbol)) return null;
+  try {
+    const json = await fetchYahooChart(symbol);
+    const result = json.chart?.result?.[0];
+    const price = result?.meta?.regularMarketPrice;
+    if (typeof price !== "number" || !Number.isFinite(price)) return null;
+    return { symbol, name: result?.meta?.shortName };
+  } catch {
+    return null;
+  }
 }

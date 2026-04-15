@@ -40,16 +40,42 @@ export default function DailyBrief({ brief, market, compact = false }: DailyBrie
 
       {market && (
         <div className="grid grid-cols-3 gap-2 border-t border-[color:var(--border)]/60 pt-4 xs:gap-3">
-          <MiniMetric label="DXY" value={formatPrice(market.dxy.price, { currency: false })} delta={market.dxy.changePct} />
-          <MiniMetric label="10Y Yield" value={`${market.tnx.price.toFixed(2)}%`} delta={market.tnx.changePct} />
+          <MiniMetric
+            label="DXY"
+            value={formatPrice(market.dxy.price, { currency: false })}
+            delta={market.dxy.changePct}
+          />
+          <MiniMetric
+            label="10Y Yield"
+            value={`${market.tnx.price.toFixed(2)}%`}
+            delta={market.tnx.changePct}
+          />
+          <MiniMetric
+            label="VIX"
+            value={market.vix.price.toFixed(2)}
+            delta={market.vix.changePct}
+          />
           <MiniMetric
             label="BTC Dom"
             value={
-              market.bitcoin.mktcap
-                ? `${((market.bitcoin.mktcap / 2.5e12) * 100).toFixed(1)}%`
+              market.macro.btcDominance
+                ? `${market.macro.btcDominance.toFixed(1)}%`
                 : "—"
             }
-            delta={market.bitcoin.changePct}
+          />
+          <MiniMetric
+            label="Crypto Cap"
+            value={formatCryptoCap(market.macro.cryptoMktCap)}
+            delta={market.macro.cryptoMktCapChangePct}
+          />
+          <MiniMetric
+            label="Gold/Silver"
+            value={
+              market.silver.price
+                ? (market.gold.price / market.silver.price).toFixed(1)
+                : "—"
+            }
+            delta={market.gold.changePct - market.silver.changePct}
           />
         </div>
       )}
@@ -76,9 +102,9 @@ function MiniMetric({
 }: {
   label: string;
   value: string;
-  delta: number;
+  delta?: number;
 }) {
-  const up = delta >= 0;
+  const up = (delta ?? 0) >= 0;
   return (
     <div className="min-w-0">
       <div className="truncate font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)] xs:text-[10px]">
@@ -87,12 +113,21 @@ function MiniMetric({
       <div className="truncate font-mono text-[13px] font-semibold text-[color:var(--text)] xs:text-sm">
         {value}
       </div>
-      <div
-        className="font-mono text-[10px]"
-        style={{ color: up ? "var(--up)" : "var(--down)" }}
-      >
-        {formatPct(delta)}
-      </div>
+      {delta != null && (
+        <div
+          className="font-mono text-[10px]"
+          style={{ color: up ? "var(--up)" : "var(--down)" }}
+        >
+          {formatPct(delta)}
+        </div>
+      )}
     </div>
   );
+}
+
+function formatCryptoCap(usd: number): string {
+  if (!usd) return "—";
+  if (usd >= 1e12) return `$${(usd / 1e12).toFixed(2)}T`;
+  if (usd >= 1e9) return `$${(usd / 1e9).toFixed(0)}B`;
+  return `$${usd.toFixed(0)}`;
 }

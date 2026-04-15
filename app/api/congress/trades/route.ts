@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ trades, count: trades.length });
   } catch (err) {
     console.error("[congress/trades] failed:", err);
-    return NextResponse.json({ error: "trades query failed" }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "trades query failed", detail }, { status: 500 });
   }
 }

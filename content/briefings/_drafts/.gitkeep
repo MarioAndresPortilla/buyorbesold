@@ -1,0 +1,10 @@
+# Local drafts live here.
+#
+# Files in this folder are NOT parsed by lib/briefs.ts — the parser's
+# readdirSync filter skips any top-level entry whose name starts with `_`.
+#
+# Workflow: `/api/draft/earnings` returns markdown. Drop it here as
+# `YYYY-MM-DD-ticker-qN.md`, edit locally, then move the final file up to
+# `content/briefings/` (remove the leading underscore / move out of _drafts/)
+# before `git push`. Next deploy renders it, RSS picks it up, next morning's
+# cron sends it.

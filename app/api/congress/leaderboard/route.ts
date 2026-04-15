@@ -35,8 +35,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("[congress/leaderboard] failed:", err);
+    const detail = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "leaderboard query failed" },
+      { error: "leaderboard query failed", detail },
       { status: 500 },
     );
   }

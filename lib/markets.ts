@@ -1,4 +1,4 @@
-import type { DualFearGreed, FearGreed, MarketData, Sector, Ticker } from "./types";
+import type { DualFearGreed, FearGreed, MacroStats, MarketData, Sector, Ticker } from "./types";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
@@ -144,6 +144,41 @@ type FngResponse = {
   data?: Array<{ value?: string; value_classification?: string }>;
 };
 
+type CoinGeckoGlobal = {
+  data?: {
+    total_market_cap?: { usd?: number };
+    market_cap_percentage?: { btc?: number };
+    market_cap_change_percentage_24h_usd?: number;
+  };
+};
+
+const FALLBACK_MACRO: MacroStats = {
+  btcDominance: 0,
+  btcDominanceDelta: 0,
+  cryptoMktCap: 0,
+  cryptoMktCapChangePct: 0,
+  stale: true,
+};
+
+/** CoinGecko /global — real BTC dominance + total crypto market cap. */
+export async function fetchMacroStats(): Promise<MacroStats> {
+  try {
+    const json = await fetchJson<CoinGeckoGlobal>(`${COINGECKO_BASE}/global`);
+    const d = json.data;
+    if (!d) return FALLBACK_MACRO;
+    return {
+      btcDominance: d.market_cap_percentage?.btc ?? 0,
+      // CoinGecko doesn't expose a dominance delta directly; show 0 rather than fake one.
+      btcDominanceDelta: 0,
+      cryptoMktCap: d.total_market_cap?.usd ?? 0,
+      cryptoMktCapChangePct: d.market_cap_change_percentage_24h_usd ?? 0,
+    };
+  } catch (err) {
+    console.warn("[markets] global fetch warn:", err);
+    return FALLBACK_MACRO;
+  }
+}
+
 /** Crypto Fear & Greed Index from alternative.me (BTC-focused). */
 export async function fetchCryptoFearGreed(): Promise<FearGreed> {
   try {
@@ -286,6 +321,8 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     dia,
     dxy,
     tnx,
+    vix,
+    macro,
     sectors,
     fearGreed,
   ] = await Promise.all([
@@ -303,6 +340,8 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     safeYahoo("DIA", "DIA", "SPDR Dow Jones"),
     safeYahoo("DX-Y.NYB", "DXY", "US Dollar Index"),
     safeYahoo("^TNX", "TNX", "10Y Treasury Yield"),
+    safeYahoo("^VIX", "VIX", "Volatility Index"),
+    fetchMacroStats(),
     fetchSectors(),
     fetchFearGreed(),
   ]);
@@ -322,6 +361,8 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     dia,
     dxy,
     tnx,
+    vix,
+    macro,
     sectors,
     fearGreed,
     updatedAt: new Date().toISOString(),

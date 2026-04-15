@@ -21,6 +21,7 @@ export async function GET(
     return NextResponse.json(profile);
   } catch (err) {
     console.error("[congress/members/:slug] failed:", err);
-    return NextResponse.json({ error: "profile query failed" }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "profile query failed", detail }, { status: 500 });
   }
 }
