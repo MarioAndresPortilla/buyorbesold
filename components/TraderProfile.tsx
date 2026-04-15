@@ -120,6 +120,10 @@ export default function TraderProfile({ username }: { username: string }) {
   const [openPositions, setOpenPositions] = useState<TradeRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isSelf, setIsSelf] = useState(false);
+  const [followPending, setFollowPending] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -136,6 +140,19 @@ export default function TraderProfile({ username }: { username: string }) {
         setStats(data.stats);
         setRecentTrades(data.recentTrades ?? []);
         setOpenPositions(data.openPositions ?? []);
+
+        if (data.trader?.id) {
+          try {
+            const s = await fetch(`/api/social/follow?followee_id=${data.trader.id}`);
+            if (s.ok) {
+              const sj = await s.json();
+              setIsFollowing(!!sj.following);
+              setIsSelf(!!sj.isSelf);
+            }
+          } catch {
+            // non-fatal
+          }
+        }
       } catch {
         setError("Failed to load profile");
       } finally {
@@ -144,6 +161,46 @@ export default function TraderProfile({ username }: { username: string }) {
     }
     load();
   }, [username]);
+
+  async function toggleFollow() {
+    if (!trader || followPending || isSelf) return;
+    setFollowPending(true);
+    setFollowError(null);
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setTrader((t) =>
+      t ? { ...t, follower_count: t.follower_count + (wasFollowing ? -1 : 1) } : t
+    );
+    try {
+      const res = await fetch("/api/social/follow", {
+        method: wasFollowing ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followee_id: trader.id }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setIsFollowing(wasFollowing);
+        setTrader((t) =>
+          t ? { ...t, follower_count: t.follower_count + (wasFollowing ? 1 : -1) } : t
+        );
+        if (res.status === 401) {
+          setFollowError("Sign in to follow traders");
+        } else if (res.status === 404) {
+          setFollowError(body.error ?? "Set up your trader profile first");
+        } else {
+          setFollowError(body.error ?? "Failed to update follow");
+        }
+      }
+    } catch {
+      setIsFollowing(wasFollowing);
+      setTrader((t) =>
+        t ? { ...t, follower_count: t.follower_count + (wasFollowing ? 1 : -1) } : t
+      );
+      setFollowError("Network error");
+    } finally {
+      setFollowPending(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -204,9 +261,26 @@ export default function TraderProfile({ username }: { username: string }) {
               <div className="font-mono text-sm font-bold">{trader.following_count}</div>
               <div className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--muted)]">Following</div>
             </div>
-            <button className="rounded border border-[color:var(--accent)] px-4 py-1.5 font-mono text-[11px] font-bold text-[color:var(--accent)] hover:bg-[color:var(--accent)]/10 transition-colors">
-              + Follow
-            </button>
+            {!isSelf && (
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={toggleFollow}
+                  disabled={followPending}
+                  className={`rounded border px-4 py-1.5 font-mono text-[11px] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isFollowing
+                      ? "border-[color:var(--border)] text-[color:var(--muted)] hover:border-[color:var(--down)] hover:text-[color:var(--down)]"
+                      : "border-[color:var(--accent)] text-[color:var(--accent)] hover:bg-[color:var(--accent)]/10"
+                  }`}
+                >
+                  {followPending ? "…" : isFollowing ? "✓ Following" : "+ Follow"}
+                </button>
+                {followError && (
+                  <span className="font-mono text-[10px] text-[color:var(--down)]">
+                    {followError}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

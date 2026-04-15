@@ -1,6 +1,43 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { query, first } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+
+/**
+ * GET /api/social/follow?followee_id=X — Check if current user follows a trader
+ */
+export async function GET(req: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ following: false, authenticated: false });
+  }
+
+  const followee_id = req.nextUrl.searchParams.get("followee_id");
+  if (!followee_id) {
+    return NextResponse.json({ error: "followee_id required" }, { status: 400 });
+  }
+
+  const trader = first(
+    await query<{ id: string }>`SELECT id FROM traders WHERE email = ${session.sub}`
+  );
+  if (!trader) {
+    return NextResponse.json({ following: false, authenticated: true, hasProfile: false });
+  }
+
+  const row = first(
+    await query<{ follower_id: string }>`
+      SELECT follower_id FROM follows
+      WHERE follower_id = ${trader.id} AND followee_id = ${followee_id}
+      LIMIT 1
+    `
+  );
+
+  return NextResponse.json({
+    following: !!row,
+    authenticated: true,
+    hasProfile: true,
+    isSelf: trader.id === followee_id,
+  });
+}
 
 /**
  * POST /api/social/follow — Follow a trader
