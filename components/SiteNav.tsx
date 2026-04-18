@@ -70,6 +70,13 @@ export default async function SiteNav(_props: SiteNavProps = {}) {
       hideBelow: "lg",
       matches: ["/congress"],
     },
+    {
+      href: "/resources",
+      label: "Resources",
+      short: "Tools",
+      hideBelow: "lg",
+      matches: ["/resources"],
+    },
   ];
 
   function isActive(link: NavLink): boolean {

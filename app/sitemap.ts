@@ -70,6 +70,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${SITE_URL}/resources`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
   ];
 
   const briefRoutes: MetadataRoute.Sitemap = briefs.map((b) => ({

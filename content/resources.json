@@ -1,0 +1,84 @@
+{
+  "$comment": "Tools & resources surfaced on /resources. Edit this file, git push, deploy = updated page. kind: 'affiliate' | 'free' | 'paid'. `ref` is where the affiliate/ref param lives — swap the `affiliateUrl` directly with whatever the vendor gives you. Always keep the plain `url` (un-tagged) so we can render a 'direct link' fallback if needed.",
+  "updatedAt": "2026-04-18",
+  "disclosure": "Some links on this page are affiliate links. If you use them, BuyOrBeSold may earn a commission at no extra cost to you. We only list things we actually use or have vetted ourselves. Not financial advice.",
+  "categories": [
+    {
+      "code": "bullion",
+      "name": "Bullion — Silver, Gold, Platinum",
+      "blurb": "Where I buy physical metal. I size based on real yields and dollar direction, not headlines. If you're new to bullion, start with sovereign coins (ASE, Maple, Eagle) before bars — liquidity matters more than spread.",
+      "items": [
+        {
+          "name": "JM Bullion",
+          "kind": "affiliate",
+          "url": "https://www.jmbullion.com/",
+          "affiliateUrl": "https://www.jmbullion.com/",
+          "blurb": "My primary dealer for silver + gold. Fast shipping, insured, tight spreads on Silver Eagles and fractional gold. Their price alerts are actually useful.",
+          "bestFor": "Silver Eagles, Gold Maples, fractional gold (1/10 oz)"
+        }
+      ]
+    },
+    {
+      "code": "brokers",
+      "name": "Brokers & Trading Platforms",
+      "blurb": "What I use to execute. Commissions matter less than fills and outage history. The scanner pairs best with a broker that gives you hot-keys and level 2.",
+      "items": [
+        {
+          "name": "Alpaca",
+          "kind": "free",
+          "url": "https://alpaca.markets/",
+          "blurb": "Commission-free stocks with a solid API. What BuyOrBeSold connects to for broker-verified traders. Paper trading is free and realistic.",
+          "bestFor": "API trading, paper testing, verified journal"
+        }
+      ]
+    },
+    {
+      "code": "charting",
+      "name": "Charting & Screening",
+      "blurb": "Charts and screens I pull up every session. The scanner on this site handles my day-trade filter — but these are where I zoom in once a name flags.",
+      "items": [
+        {
+          "name": "TradingView",
+          "kind": "free",
+          "url": "https://www.tradingview.com/",
+          "blurb": "Best charts on the internet. Free tier covers most of what you need. Paid tier unlocks multi-chart layouts + extra indicators.",
+          "bestFor": "Multi-timeframe chart analysis, replay mode"
+        },
+        {
+          "name": "Finviz",
+          "kind": "free",
+          "url": "https://finviz.com/",
+          "blurb": "Fastest way to get a snapshot of a ticker — fundamentals, technicals, ownership, short interest on one page. I start every new-name deep-dive here.",
+          "bestFor": "Quick ticker overview, screener, heatmaps"
+        }
+      ]
+    },
+    {
+      "code": "data",
+      "name": "Data & News",
+      "blurb": "Where the numbers and headlines actually come from. You don't need a Bloomberg terminal — you need one good data feed and a plan.",
+      "items": [
+        {
+          "name": "Finnhub",
+          "kind": "free",
+          "url": "https://finnhub.io/",
+          "blurb": "Free-tier market data API I use for float data, economic calendar, and company news. Paid tiers unlock WebSockets + pre/post-market.",
+          "bestFor": "Float lookup, economic calendar, news feeds"
+        },
+        {
+          "name": "Yahoo Finance",
+          "kind": "free",
+          "url": "https://finance.yahoo.com/",
+          "blurb": "Free delayed quotes, historical data, earnings calendar. Not real-time but reliable for EOD analysis and backtests.",
+          "bestFor": "Historical data, earnings calendar, basic screeners"
+        }
+      ]
+    },
+    {
+      "code": "reading",
+      "name": "Reading & Research",
+      "blurb": "The writing that made me a better trader. None of these will make you money directly — they shape how you think about risk, cycles, and positioning.",
+      "items": []
+    }
+  ]
+}
