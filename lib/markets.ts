@@ -451,13 +451,25 @@ export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
       })
       .filter((e): e is MacroEvent & { _sortKey: number } => e !== null);
 
-    // Pagination on the UI handles volume, so we surface the entire week
-    // chronologically instead of clipping LOW-impact rows — readers can
-    // still scan page 1 for HIGH events since those sort to the top of
-    // their own time bucket via the natural Finnhub order.
-    const combined = mapped
-      .slice()
+    // Surface the whole week, but anchor the list on the reader's "today"
+    // instead of Monday — upcoming events (today + future) come first in
+    // chronological order, then past events in reverse chronological
+    // order (yesterday before Monday). That keeps page 1 focused on what
+    // actually matters when someone loads the dashboard mid-week.
+    const todayStart = (() => {
+      const ymd = new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/New_York",
+      });
+      const [y, m, d] = ymd.split("-").map(Number);
+      return Date.UTC(y, (m ?? 1) - 1, d ?? 1);
+    })();
+    const upcoming = mapped
+      .filter((e) => e._sortKey >= todayStart)
       .sort((a, b) => a._sortKey - b._sortKey);
+    const past = mapped
+      .filter((e) => e._sortKey < todayStart)
+      .sort((a, b) => b._sortKey - a._sortKey);
+    const combined = [...upcoming, ...past];
     return combined.map(({ _sortKey: _s, ...rest }) => rest);
   } catch (err) {
     console.warn("[markets] finnhub econ calendar fail:", err);

@@ -271,7 +271,11 @@ export async function getAllBriefs(): Promise<Brief[]> {
     ...fsBriefs,
     ...aiBriefs.filter((b) => !slugs.has(b.slug)),
   ];
-  return merged.sort((a, b) => (a.date < b.date ? 1 : -1));
+  // Use the timestamp-aware comparator so same-day briefs (premarket /
+  // midday / postmarket) order by their actual publish time — previously
+  // a plain `a.date < b.date` compare returned -1 for ties, which let
+  // Array.sort shuffle the order and hide postmarket behind older editions.
+  return merged.sort((a, b) => compareBriefsDesc(a, b));
 }
 
 /**
