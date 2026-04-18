@@ -22,15 +22,7 @@
       "code": "brokers",
       "name": "Brokers & Trading Platforms",
       "blurb": "What I use to execute. Commissions matter less than fills and outage history. The scanner pairs best with a broker that gives you hot-keys and level 2.",
-      "items": [
-        {
-          "name": "Alpaca",
-          "kind": "free",
-          "url": "https://alpaca.markets/",
-          "blurb": "Commission-free stocks with a solid API. What BuyOrBeSold connects to for broker-verified traders. Paper trading is free and realistic.",
-          "bestFor": "API trading, paper testing, verified journal"
-        }
-      ]
+      "items": []
     },
     {
       "code": "charting",
@@ -58,13 +50,6 @@
       "name": "Data & News",
       "blurb": "Where the numbers and headlines actually come from. You don't need a Bloomberg terminal — you need one good data feed and a plan.",
       "items": [
-        {
-          "name": "Finnhub",
-          "kind": "free",
-          "url": "https://finnhub.io/",
-          "blurb": "Free-tier market data API I use for float data, economic calendar, and company news. Paid tiers unlock WebSockets + pre/post-market.",
-          "bestFor": "Float lookup, economic calendar, news feeds"
-        },
         {
           "name": "Yahoo Finance",
           "kind": "free",
