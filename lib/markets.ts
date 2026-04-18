@@ -433,31 +433,32 @@ export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
           e.actual ?? e.estimate,
           e.unit
         );
+        // YYYY-MM-DD in America/New_York for the event date — used by the
+        // UI to render "Apr 10" alongside the weekday code.
+        const isoDate = dt
+          .toLocaleDateString("en-CA", { timeZone: "America/New_York" })
+          .slice(0, 10);
         return {
           day: weekday,
           time: `${time} ET`,
+          date: isoDate,
           name: e.event,
           previous,
           estimate,
           impact,
           _sortKey: dt.getTime(),
-          _impactRank: impact === "HIGH" ? 0 : impact === "MED" ? 1 : 2,
-        } as MacroEvent & { _sortKey: number; _impactRank: number };
+        } as MacroEvent & { _sortKey: number };
       })
-      .filter((e): e is MacroEvent & { _sortKey: number; _impactRank: number } => e !== null);
+      .filter((e): e is MacroEvent & { _sortKey: number } => e !== null);
 
-    // Trim the noise: keep HIGH + MED in full, cap LOW at 6 across the week
-    // (otherwise Finnhub floods the panel with housing surveys, etc.).
-    const high = mapped.filter((e) => e.impact === "HIGH");
-    const med = mapped.filter((e) => e.impact === "MED");
-    const low = mapped
-      .filter((e) => e.impact === "LOW")
-      .slice(0, Math.max(0, 6 - high.length - med.length));
-    const combined = [...high, ...med, ...low].sort(
-      (a, b) => a._sortKey - b._sortKey
-    );
-    // strip private sort fields
-    return combined.map(({ _sortKey: _s, _impactRank: _i, ...rest }) => rest);
+    // Pagination on the UI handles volume, so we surface the entire week
+    // chronologically instead of clipping LOW-impact rows — readers can
+    // still scan page 1 for HIGH events since those sort to the top of
+    // their own time bucket via the natural Finnhub order.
+    const combined = mapped
+      .slice()
+      .sort((a, b) => a._sortKey - b._sortKey);
+    return combined.map(({ _sortKey: _s, ...rest }) => rest);
   } catch (err) {
     console.warn("[markets] finnhub econ calendar fail:", err);
     return [];

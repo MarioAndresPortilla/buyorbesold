@@ -75,8 +75,12 @@ export interface Sector {
 }
 
 export interface MacroEvent {
+  /** Short weekday code, e.g. "MON". */
   day: string;
+  /** Rendered time-of-day, e.g. "08:30 ET". */
   time: string;
+  /** Calendar date as YYYY-MM-DD in America/New_York; optional for back-compat. */
+  date?: string;
   name: string;
   previous?: string;
   estimate?: string;

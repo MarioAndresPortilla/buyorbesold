@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import type { MacroEvent } from "@/lib/types";
 
 const DEFAULT_EVENTS: MacroEvent[] = [
@@ -51,6 +54,8 @@ const DEFAULT_EVENTS: MacroEvent[] = [
   },
 ];
 
+const PAGE_SIZE = 10;
+
 interface MacroCalendarProps {
   events?: MacroEvent[];
 }
@@ -61,9 +66,35 @@ function impactClasses(impact: MacroEvent["impact"]): string {
   return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
 }
 
+/**
+ * "Apr 10" from a YYYY-MM-DD string. Kept locale-fixed so the short
+ * month label doesn't drift between SSR and client render.
+ */
+function formatMonthDay(yyyyMmDd?: string): string | null {
+  if (!yyyyMmDd) return null;
+  const parts = yyyyMmDd.slice(0, 10).split("-").map(Number);
+  const [y, m, d] = parts;
+  if (!y || !m || !d) return null;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function MacroCalendar({ events }: MacroCalendarProps) {
   const hasLive = !!events && events.length > 0;
-  const list = hasLive ? events! : DEFAULT_EVENTS;
+  const list = useMemo(
+    () => (hasLive ? events! : DEFAULT_EVENTS),
+    [hasLive, events]
+  );
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+  const start = (current - 1) * PAGE_SIZE;
+  const visible = list.slice(start, start + PAGE_SIZE);
+  const rangeEnd = Math.min(start + PAGE_SIZE, list.length);
+
   return (
     <div>
       {!hasLive && (
@@ -71,38 +102,115 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
           Sample calendar · set FINNHUB_API_KEY for live data
         </div>
       )}
-      <div className="divide-y divide-[color:var(--border)]">
-      {list.map((e, i) => (
-        <div
-          key={`${e.day}-${e.time}-${i}`}
-          className="flex items-start justify-between gap-3 py-3 font-mono text-[11px]"
-        >
-          {/* Day badge */}
-          <div className="flex w-10 shrink-0 flex-col items-start">
-            <span className="font-bold text-[color:var(--accent)]">{e.day}</span>
-            <span className="text-[9px] text-[color:var(--muted)]">{e.time}</span>
-          </div>
 
-          {/* Event + meta (stacks on narrow, inlines on sm+) */}
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[color:var(--text)]">{e.name}</div>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-[color:var(--muted)]">
-              <span>prev {e.previous ?? "—"}</span>
-              <span>est {e.estimate ?? "—"}</span>
-            </div>
-          </div>
-
-          {/* Impact badge */}
-          <span
-            className={`shrink-0 self-start rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${impactClasses(
-              e.impact
-            )}`}
-          >
-            {e.impact}
+      <div className="mb-2 flex items-baseline justify-between font-mono text-[9px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
+        <span>
+          {start + 1}–{rangeEnd} of {list.length}
+        </span>
+        {totalPages > 1 && (
+          <span>
+            Page {current} / {totalPages}
           </span>
-        </div>
-      ))}
+        )}
       </div>
+
+      <div className="divide-y divide-[color:var(--border)]">
+        {visible.map((e, i) => {
+          const monthDay = formatMonthDay(e.date);
+          return (
+            <div
+              key={`${e.date ?? e.day}-${e.time}-${i}`}
+              className="flex items-start justify-between gap-3 py-3 font-mono text-[11px]"
+            >
+              {/* Day badge */}
+              <div className="flex w-14 shrink-0 flex-col items-start">
+                <span className="font-bold text-[color:var(--accent)]">{e.day}</span>
+                {monthDay && (
+                  <span className="text-[9px] text-[color:var(--text)]">
+                    {monthDay}
+                  </span>
+                )}
+                <span className="text-[9px] text-[color:var(--muted)]">{e.time}</span>
+              </div>
+
+              {/* Event + meta (stacks on narrow, inlines on sm+) */}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[color:var(--text)]">{e.name}</div>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-[color:var(--muted)]">
+                  <span>prev {e.previous ?? "—"}</span>
+                  <span>est {e.estimate ?? "—"}</span>
+                </div>
+              </div>
+
+              {/* Impact badge */}
+              <span
+                className={`shrink-0 self-start rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${impactClasses(
+                  e.impact
+                )}`}
+              >
+                {e.impact}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-3 flex items-center justify-between border-t border-[color:var(--border)] pt-3">
+          <PageButton
+            label="← Prev"
+            disabled={current === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          />
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((n) => (
+              <button
+                type="button"
+                key={n}
+                onClick={() => setPage(n)}
+                aria-current={n === current ? "page" : undefined}
+                className={`flex min-w-[2rem] items-center justify-center rounded-md border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  n === current
+                    ? "border-[color:var(--accent)] bg-[color:var(--accent)]/20 text-[color:var(--accent)]"
+                    : "border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <PageButton
+            label="Next →"
+            disabled={current === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </div>
+      )}
     </div>
+  );
+}
+
+function PageButton({
+  label,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${
+        disabled
+          ? "cursor-not-allowed border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--subtle)] opacity-50"
+          : "border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
