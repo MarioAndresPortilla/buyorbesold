@@ -10,10 +10,20 @@ interface TickerCardProps {
 
 export default function TickerCard({ ticker, label }: TickerCardProps) {
   const up = ticker.changePct >= 0;
+  // Prefer the Yahoo symbol (e.g. "^GSPC") — the display symbol ("SPX")
+  // won't deep-link. Falls back to display when Yahoo symbol is missing
+  // (e.g. stale server payload from before yahooSymbol was populated).
+  const yahooHref = `https://finance.yahoo.com/quote/${encodeURIComponent(
+    ticker.yahooSymbol ?? ticker.symbol
+  )}`;
 
   return (
-    <div
-      className="relative flex min-w-0 flex-col gap-3 overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4"
+    <a
+      href={yahooHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${label ?? ticker.name ?? ticker.symbol} — open on Yahoo Finance`}
+      className="group relative flex min-w-0 flex-col gap-3 overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--accent)] focus:border-[color:var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]"
       data-up={up}
     >
       <div
@@ -59,6 +69,13 @@ export default function TickerCard({ ticker, label }: TickerCardProps) {
             : "SPOT"}
         </span>
       </div>
-    </div>
+
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-2 top-2 rounded-full border border-[color:var(--border)] bg-[color:var(--bg)]/70 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-[color:var(--muted)] opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
+      >
+        Open ↗
+      </span>
+    </a>
   );
 }

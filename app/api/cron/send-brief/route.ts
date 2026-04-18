@@ -15,7 +15,7 @@ import {
   markAiBriefSent,
 } from "@/lib/kv";
 import { EMAIL_COLORS, SITE_URL, emailShell, escape, renderMarketStrip } from "@/lib/email";
-import { formatPrice } from "@/lib/format";
+import { formatBriefDate, formatPrice } from "@/lib/format";
 import type { Brief, MarketData } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -100,7 +100,7 @@ function renderBriefEmail(
   const body = `
     <!-- Pill -->
     <div style="display:inline-block;padding:4px 12px;border:1px solid rgba(201,168,76,0.4);background:rgba(201,168,76,0.12);border-radius:999px;font-family:monospace;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${EMAIL_COLORS.accent};">
-      Daily Brief · ${escape(brief.date)}
+      Daily Brief · ${escape(formatBriefDate(brief))}
     </div>
 
     <!-- Title -->

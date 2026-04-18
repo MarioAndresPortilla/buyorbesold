@@ -231,10 +231,19 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 
 function TickerRow({ ticker, showRange = false }: { ticker: Ticker; showRange?: boolean }) {
   const up = ticker.changePct >= 0;
+  const yahooHref = `https://finance.yahoo.com/quote/${encodeURIComponent(
+    ticker.yahooSymbol ?? ticker.symbol
+  )}`;
   return (
-    <div className="flex items-center gap-2 py-3 xs:gap-3">
+    <a
+      href={yahooHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${ticker.name ?? ticker.symbol} — open on Yahoo Finance`}
+      className="group flex items-center gap-2 rounded-md py-3 transition-colors hover:bg-[color:var(--surface-2)]/60 focus:bg-[color:var(--surface-2)] focus:outline-none xs:gap-3"
+    >
       <div className="w-16 shrink-0 xs:w-20">
-        <div className="truncate font-mono text-xs font-bold text-[color:var(--text)]">
+        <div className="truncate font-mono text-xs font-bold text-[color:var(--text)] group-hover:text-[color:var(--accent)]">
           {ticker.symbol}
         </div>
         <div className="truncate font-mono text-[9px] uppercase tracking-wider text-[color:var(--muted)]">
@@ -266,6 +275,6 @@ function TickerRow({ ticker, showRange = false }: { ticker: Ticker; showRange?: 
           {arrow(ticker.changePct)} {formatPct(ticker.changePct)}
         </div>
       </div>
-    </div>
+    </a>
   );
 }

@@ -272,6 +272,57 @@ export async function deleteUserTrade(email: string, id: string): Promise<boolea
 const AI_BRIEF_PREFIX = "brief:ai:";
 const AI_BRIEF_INDEX = "brief:ai:index";
 
+/**
+ * Briefs saved before the `publishedAt` field existed don't carry a time
+ * component, so they'd render as date-only on the homepage / dashboard /
+ * archive. Slugs are `${yyyy-mm-dd}-${edition}`, so we can back-derive a
+ * reasonable ET time from the edition suffix and write it back on read.
+ *
+ * These times are intentionally the same defaults the cron uses for the
+ * live send so old briefs sort alongside new ones consistently.
+ */
+function backfillPublishedAt(brief: Brief): Brief {
+  if (brief.publishedAt) return brief;
+  const match = /-(premarket|midday|postmarket)$/i.exec(brief.slug);
+  const edition = match?.[1]?.toLowerCase();
+  // ET wall-clock → build an ISO with the matching offset. April uses EDT
+  // (-04:00); November–March uses EST (-05:00). We pick the right one from
+  // the brief's own date rather than "now" so historical briefs don't drift.
+  const etOffset = inEasternDaylight(brief.date) ? "-04:00" : "-05:00";
+  const time =
+    edition === "premarket"
+      ? "08:00:00"
+      : edition === "midday"
+        ? "12:30:00"
+        : edition === "postmarket"
+          ? "16:30:00"
+          : null;
+  if (!time) return brief;
+  const publishedAt = `${brief.date}T${time}${etOffset}`;
+  const iso = new Date(publishedAt).toISOString();
+  return { ...brief, publishedAt: iso };
+}
+
+/**
+ * True when a YYYY-MM-DD in the US falls inside daylight saving. DST in
+ * the US runs from the second Sunday of March through the first Sunday
+ * of November — we compute the boundaries from the year in the date
+ * string rather than shipping a TZ database.
+ */
+function inEasternDaylight(yyyyMmDd: string): boolean {
+  const [y, m, d] = yyyyMmDd.slice(0, 10).split("-").map(Number);
+  if (!y) return true; // permissive default
+  const year = y;
+  const march = new Date(Date.UTC(year, 2, 1));
+  const marchStart = 1 + ((7 - march.getUTCDay()) % 7) + 7; // 2nd Sun
+  const nov = new Date(Date.UTC(year, 10, 1));
+  const novEnd = 1 + ((7 - nov.getUTCDay()) % 7); // 1st Sun
+  const target = new Date(Date.UTC(y, m - 1, d)).getTime();
+  const dstStart = Date.UTC(year, 2, marchStart);
+  const dstEnd = Date.UTC(year, 10, novEnd);
+  return target >= dstStart && target < dstEnd;
+}
+
 export async function saveAiBrief(brief: Brief): Promise<boolean> {
   const kv = await getKv();
   if (!kv) return false;
@@ -296,7 +347,9 @@ export async function listAiBriefs(limit = 50): Promise<Brief[]> {
     const briefs = await kv.mget<Brief[]>(
       ...slugs.map((s) => `${AI_BRIEF_PREFIX}${s}`)
     );
-    return briefs.filter((b): b is Brief => b !== null);
+    return briefs
+      .filter((b): b is Brief => b !== null)
+      .map(backfillPublishedAt);
   } catch (err) {
     console.warn("[kv] listAiBriefs fail:", err);
     return [];
@@ -307,7 +360,8 @@ export async function getAiBrief(slug: string): Promise<Brief | null> {
   const kv = await getKv();
   if (!kv) return null;
   try {
-    return (await kv.get<Brief>(`${AI_BRIEF_PREFIX}${slug}`)) ?? null;
+    const raw = await kv.get<Brief>(`${AI_BRIEF_PREFIX}${slug}`);
+    return raw ? backfillPublishedAt(raw) : null;
   } catch (err) {
     console.warn("[kv] getAiBrief fail:", err);
     return null;

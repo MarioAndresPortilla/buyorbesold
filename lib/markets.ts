@@ -82,6 +82,7 @@ export async function fetchYahoo(
 
   return {
     symbol: displaySymbol ?? symbol,
+    yahooSymbol: symbol,
     name,
     price,
     change,
@@ -251,6 +252,7 @@ export async function fetchFearGreed(): Promise<DualFearGreed> {
 export function fallbackTicker(symbol: string, name?: string): Ticker {
   return {
     symbol,
+    yahooSymbol: symbol,
     name,
     price: 0,
     change: 0,

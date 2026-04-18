@@ -1,6 +1,12 @@
 export interface Ticker {
   symbol: string;
   name?: string;
+  /**
+   * Underlying Yahoo symbol (e.g. "^GSPC" for SPX, "GC=F" for gold).
+   * We store both because `symbol` is the short display label on the
+   * card and Yahoo's deep-link URL needs the full, unfriendly symbol.
+   */
+  yahooSymbol?: string;
   price: number;
   change: number;
   changePct: number;
