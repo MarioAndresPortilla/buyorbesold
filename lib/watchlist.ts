@@ -36,7 +36,13 @@ type YahooChart = {
         shortName?: string;
         regularMarketPrice?: number;
         previousClose?: number;
+        chartPreviousClose?: number;
         regularMarketVolume?: number;
+        marketState?: string;
+        preMarketPrice?: number;
+        preMarketChangePercent?: number;
+        postMarketPrice?: number;
+        postMarketChangePercent?: number;
       };
       indicators?: {
         quote?: Array<{
@@ -49,7 +55,9 @@ type YahooChart = {
 };
 
 async function fetchYahooChart(symbol: string): Promise<YahooChart> {
-  const url = `${YAHOO_CHART}/${encodeURIComponent(symbol)}?interval=1d&range=1y`;
+  // includePrePost=true adds preMarketPrice/postMarketPrice + marketState to meta,
+  // so we can surface extended-hours prints alongside the regular-session close.
+  const url = `${YAHOO_CHART}/${encodeURIComponent(symbol)}?interval=1d&range=1y&includePrePost=true`;
   const res = await fetch(url, {
     headers: {
       "User-Agent":
@@ -83,13 +91,26 @@ export async function enrichSymbols(
         if (!result?.meta) return null;
         const meta = result.meta;
         const price = meta.regularMarketPrice ?? 0;
-        const prev = meta.previousClose ?? price;
         const closes = (result.indicators?.quote?.[0]?.close ?? []).filter(
           (v): v is number => typeof v === "number" && Number.isFinite(v)
         );
         const vols = (result.indicators?.quote?.[0]?.volume ?? []).filter(
           (v): v is number => typeof v === "number" && Number.isFinite(v)
         );
+
+        // Prior-session close. Yahoo sometimes omits previousClose in meta
+        // (especially mid-session on thin-volume small-caps), which made the
+        // day's change collapse to 0%. Fall back through chartPreviousClose,
+        // then to the prior daily bar from history — last bar is today's
+        // (possibly incomplete) so we take the one before it.
+        let prev = meta.previousClose ?? meta.chartPreviousClose;
+        if (!prev || prev === price) {
+          const prior =
+            closes.length >= 2 ? closes[closes.length - 2] : closes[closes.length - 1];
+          if (prior && prior !== price) prev = prior;
+        }
+        const changePct = prev ? ((price - prev) / prev) * 100 : 0;
+
         const sma50 = sma(closes, 50);
         const sma200 = sma(closes, 200);
         const last10 = vols.slice(-11, -1);
@@ -104,7 +125,12 @@ export async function enrichSymbols(
           name: meta.shortName,
           note: item.note,
           price,
-          changePct: prev ? ((price - prev) / prev) * 100 : 0,
+          changePct,
+          marketState: meta.marketState,
+          preMarketPrice: meta.preMarketPrice,
+          preMarketChangePct: meta.preMarketChangePercent,
+          postMarketPrice: meta.postMarketPrice,
+          postMarketChangePct: meta.postMarketChangePercent,
           rvol,
           sma50,
           sma200,

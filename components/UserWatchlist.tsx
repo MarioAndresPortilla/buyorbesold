@@ -219,6 +219,30 @@ function Row({
 }) {
   const up = entry.changePct >= 0;
   const color = up ? "var(--up)" : "var(--down)";
+
+  // Show the extended-hours line when Yahoo is reporting a pre or post
+  // price. We key off marketState first, then fall back to whichever
+  // price is present — some tickers don't get a clean state label.
+  const state = entry.marketState;
+  const preActive =
+    (state === "PRE" || state === "PREPRE") && entry.preMarketPrice !== undefined;
+  const postActive =
+    (state === "POST" || state === "POSTPOST" || state === "CLOSED") &&
+    entry.postMarketPrice !== undefined;
+  const extLabel = preActive ? "PRE" : postActive ? "AH" : null;
+  const extPrice = preActive
+    ? entry.preMarketPrice
+    : postActive
+    ? entry.postMarketPrice
+    : undefined;
+  const extChange = preActive
+    ? entry.preMarketChangePct
+    : postActive
+    ? entry.postMarketChangePct
+    : undefined;
+  const extColor =
+    extChange !== undefined && extChange < 0 ? "var(--down)" : "var(--up)";
+
   return (
     <div className="p-3">
       <div className="flex items-start justify-between gap-3">
@@ -260,6 +284,18 @@ function Row({
             >
               {arrow(entry.changePct)} {formatPct(entry.changePct)}
             </div>
+            {extLabel && extPrice !== undefined && (
+              <div
+                className="mt-0.5 font-mono text-[10px]"
+                style={{ color: extColor }}
+              >
+                <span className="text-[color:var(--muted)]">{extLabel}</span>{" "}
+                {formatPrice(extPrice)}
+                {extChange !== undefined && (
+                  <> {arrow(extChange)} {formatPct(extChange)}</>
+                )}
+              </div>
+            )}
           </div>
           <button
             type="button"

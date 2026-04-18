@@ -208,8 +208,20 @@ export interface WatchlistEntry {
   symbol: string;
   name?: string;
   note?: string;
+  /** Regular-session last price (today's close once the bell rings). */
   price: number;
+  /** Regular-session percent change vs prior session close. */
   changePct: number;
+  /** Yahoo marketState: PRE, REGULAR, POST, POSTPOST, PREPRE, CLOSED. */
+  marketState?: string;
+  /** Premarket last print, when available. */
+  preMarketPrice?: number;
+  /** Premarket percent change vs prior session close. */
+  preMarketChangePct?: number;
+  /** After-hours last print, when available. */
+  postMarketPrice?: number;
+  /** After-hours percent change vs regular-session close. */
+  postMarketChangePct?: number;
   rvol: number;
   sma50?: number;
   sma200?: number;
