@@ -219,7 +219,12 @@ function SetupCard({
   const up = kind === "long";
   const accent = up ? "var(--up)" : "var(--down)";
   return (
-    <div className="relative flex flex-col gap-3 overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4">
+    <div className="relative flex flex-col gap-3 overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--accent)]">
+      <Link
+        href={`/chart/${encodeURIComponent(candidate.symbol)}`}
+        aria-label={`View ${candidate.symbol} chart`}
+        className="absolute inset-0"
+      />
       <div
         className="absolute inset-x-0 top-0 h-[3px]"
         style={{ background: accent }}
@@ -294,7 +299,7 @@ function SetupCard({
           href={candidate.latestNews.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block border-t border-[color:var(--border)]/60 pt-2 font-mono text-[10px] leading-relaxed"
+          className="relative block border-t border-[color:var(--border)]/60 pt-2 font-mono text-[10px] leading-relaxed"
           title={new Date(candidate.latestNews.datetime).toUTCString()}
         >
           <span
@@ -315,7 +320,7 @@ function SetupCard({
       )}
 
       {/* External links */}
-      <div className="flex gap-2 border-t border-[color:var(--border)]/60 pt-3 font-mono text-[10px] uppercase tracking-wider">
+      <div className="relative flex gap-2 border-t border-[color:var(--border)]/60 pt-3 font-mono text-[10px] uppercase tracking-wider">
         <a
           href={`https://finance.yahoo.com/quote/${encodeURIComponent(candidate.symbol)}`}
           target="_blank"
@@ -376,7 +381,15 @@ function WatchlistPanel({
           const up = e.changePct >= 0;
           const color = up ? "var(--up)" : "var(--down)";
           return (
-            <div key={e.symbol} className="p-4">
+            <div
+              key={e.symbol}
+              className="relative p-4 transition-colors hover:bg-[color:var(--bg)]/40"
+            >
+              <Link
+                href={`/chart/${encodeURIComponent(e.symbol)}`}
+                aria-label={`View ${e.symbol} chart`}
+                className="absolute inset-0"
+              />
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">

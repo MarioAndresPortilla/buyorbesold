@@ -244,16 +244,18 @@ function Row({
     extChange !== undefined && extChange < 0 ? "var(--down)" : "var(--up)";
 
   return (
-    <div className="p-3">
+    <div className="relative p-3 transition-colors hover:bg-[color:var(--bg)]/40">
+      <Link
+        href={`/chart/${encodeURIComponent(entry.symbol)}`}
+        aria-label={`View ${entry.symbol} chart`}
+        className="absolute inset-0"
+      />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Link
-              href={`/chart/${encodeURIComponent(entry.symbol)}`}
-              className="font-bebas text-xl leading-none tracking-wide text-[color:var(--text)] transition-colors hover:text-[color:var(--accent)]"
-            >
+            <span className="font-bebas text-xl leading-none tracking-wide text-[color:var(--text)]">
               {entry.symbol}
-            </Link>
+            </span>
             {entry.name && (
               <span className="truncate font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
                 {entry.name}
@@ -302,9 +304,13 @@ function Row({
           </div>
           <button
             type="button"
-            onClick={onRemove}
+            onClick={(ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              onRemove();
+            }}
             aria-label={`Remove ${entry.symbol}`}
-            className="rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-[10px] text-[color:var(--muted)] transition-colors hover:border-red-500/60 hover:text-red-400"
+            className="relative rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-[10px] text-[color:var(--muted)] transition-colors hover:border-red-500/60 hover:text-red-400"
           >
             ✕
           </button>
