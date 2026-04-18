@@ -22,7 +22,22 @@
       "code": "brokers",
       "name": "Brokers & Trading Platforms",
       "blurb": "What I use to execute. Commissions matter less than fills and outage history. The scanner pairs best with a broker that gives you hot-keys and level 2.",
-      "items": []
+      "items": [
+        {
+          "name": "thinkorswim",
+          "kind": "free",
+          "url": "https://www.schwab.com/trading/thinkorswim",
+          "blurb": "Schwab's pro trading platform (ex-TD). Best-in-class charting, options chain, and paper trading. What I use for multi-leg options and deep chart work — desktop app punches above its weight.",
+          "bestFor": "Advanced charting, options, paper trading"
+        },
+        {
+          "name": "Lightspeed",
+          "kind": "paid",
+          "url": "https://www.lightspeed.com/",
+          "blurb": "Direct-access broker built for active day traders. Routing control, sub-second fills, hot-keys, and a real locate desk for shorts. Not for beginners — per-share or per-trade commissions and a monthly platform fee, but the fills are worth it once you scale.",
+          "bestFor": "Active day trading, short locates, direct routing"
+        }
+      ]
     },
     {
       "code": "charting",
