@@ -314,8 +314,14 @@ type FinnhubEconomicEvent = {
   unit?: string;
 };
 
+// Finnhub's docs show the calendar as a flat array under `economicCalendar`,
+// but some tiers wrap it in `{ result: [...] }` — accept either shape.
 type FinnhubEconomicResp = {
-  economicCalendar?: { result?: FinnhubEconomicEvent[] };
+  economicCalendar?:
+    | FinnhubEconomicEvent[]
+    | { result?: FinnhubEconomicEvent[] };
+  // A few Finnhub error responses put the message here.
+  error?: string;
 };
 
 function formatMacroValue(v: unknown, unit?: string): string | undefined {
@@ -361,11 +367,33 @@ export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-      next: { revalidate: 60 * 60 * 6 }, // calendar moves slowly
+      // Events don't change often, but the `actual` value updates the moment
+      // a print hits the tape — 30 min keeps post-release numbers fresh
+      // without hammering the free tier.
+      next: { revalidate: 60 * 30 },
     });
-    if (!res.ok) throw new Error(`finnhub econ ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(
+        `finnhub econ ${res.status} ${body.slice(0, 200)}`
+      );
+    }
     const json = (await res.json()) as FinnhubEconomicResp;
-    const raw = json.economicCalendar?.result ?? [];
+    if (json.error) {
+      console.warn("[markets] finnhub econ error:", json.error);
+      return [];
+    }
+    const payload = json.economicCalendar;
+    const raw: FinnhubEconomicEvent[] = Array.isArray(payload)
+      ? payload
+      : payload && Array.isArray(payload.result)
+        ? payload.result
+        : [];
+    if (raw.length === 0) {
+      console.warn(
+        `[markets] finnhub econ calendar returned 0 rows for ${from}..${to}`
+      );
+    }
     const usOnly = raw.filter(
       (e) => (e.country ?? "").toUpperCase() === "US" && e.event
     );
