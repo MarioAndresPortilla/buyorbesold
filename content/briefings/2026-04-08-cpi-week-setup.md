@@ -1,6 +1,7 @@
 ---
 title: "CPI week: what I'm watching and what I'm ignoring"
 date: 2026-04-08
+publishedAt: 2026-04-08T07:30:00-04:00
 summary: Headline inflation prints Thursday. Here's the 60-second version of what moves and what doesn't.
 tags:
   - cpi

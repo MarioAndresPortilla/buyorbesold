@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Brief, MarketData } from "@/lib/types";
-import { formatPct, formatPrice } from "@/lib/format";
+import { formatBriefDate, formatPct, formatPrice } from "@/lib/format";
 import BriefBody from "./BriefBody";
 
 interface DailyBriefProps {
@@ -16,9 +16,12 @@ export default function DailyBrief({ brief, market, compact = false }: DailyBrie
         <span className="rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--accent)]">
           Daily Brief
         </span>
-        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
-          {brief.date}
-        </span>
+        <time
+          dateTime={brief.publishedAt ?? brief.date}
+          className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]"
+        >
+          {formatBriefDate(brief)}
+        </time>
       </div>
 
       <h2 className="font-bebas text-2xl leading-tight tracking-wide text-[color:var(--text)] xs:text-3xl sm:text-4xl">

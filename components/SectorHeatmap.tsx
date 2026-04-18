@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import type { Sector } from "@/lib/types";
 
@@ -152,8 +153,10 @@ function ChipTile({
   const idLabel = `${String(index + 1).padStart(2, "0")}`;
 
   return (
-    <div
-      className="group relative flex aspect-[5/4] flex-col overflow-hidden rounded-md border transition-all duration-200 hover:z-10 hover:scale-[1.04]"
+    <Link
+      href={`/sectors/${encodeURIComponent(sector.code.toLowerCase())}`}
+      aria-label={`${sector.name}: ${up ? "+" : ""}${sector.changePct.toFixed(2)}% — view breakdown`}
+      className="group relative flex aspect-[5/4] flex-col overflow-hidden rounded-md border transition-all duration-200 hover:z-10 hover:scale-[1.04] focus:z-10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
       style={
         {
           background: bg,
@@ -161,7 +164,7 @@ function ChipTile({
           "--chip-glow": glow,
         } as React.CSSProperties
       }
-      title={`${sector.name}: ${up ? "+" : ""}${sector.changePct.toFixed(2)}%`}
+      title={`${sector.name}: ${up ? "+" : ""}${sector.changePct.toFixed(2)}% — click for breakdown`}
     >
       {/* Chip pins — top & bottom edges */}
       <ChipPins side="top" color={border} />
@@ -258,7 +261,7 @@ function ChipTile({
           />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

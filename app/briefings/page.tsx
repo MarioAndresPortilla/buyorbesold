@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllBriefs, getAllTagsAsync } from "@/lib/briefs";
+import { formatBriefDate } from "@/lib/format";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -66,7 +67,12 @@ export default async function BriefingsIndexPage({ searchParams }: PageProps) {
               <li key={b.slug} className="py-6">
                 <Link href={`/briefings/${b.slug}`} className="group block">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-                    <span className="text-[color:var(--accent)]">{b.date}</span>
+                    <time
+                      dateTime={b.publishedAt ?? b.date}
+                      className="text-[color:var(--accent)]"
+                    >
+                      {formatBriefDate(b)}
+                    </time>
                     {b.type && b.type !== "brief" && (
                       <span className="rounded border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-1.5 py-0.5 font-bold tracking-wider text-[color:var(--accent)]">
                         {b.type}

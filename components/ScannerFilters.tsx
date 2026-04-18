@@ -60,7 +60,14 @@ export default function ScannerFilters() {
     if (mr) fromUrl.minRvol = Number(mr);
     if (sb) fromUrl.smaBouncePct = Number(sb) * 100; // decimal → %
 
-    setFilters({ ...DEFAULTS, ...saved, ...fromUrl });
+    const merged: Filters = { ...DEFAULTS, ...saved, ...fromUrl };
+    // Mirror the server's parseCriteria auto-scaling so the form shows the
+    // float cap the scanner is actually using. Only apply when `maxFloat`
+    // wasn't explicit in the URL (i.e. the server did the same inference).
+    if (!mf && merged.priceMax > 30 && merged.maxFloat === DEFAULTS.maxFloat) {
+      merged.maxFloat = 500;
+    }
+    setFilters(merged);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const apply = useCallback(() => {
@@ -149,7 +156,20 @@ export default function ScannerFilters() {
             min="0.10"
             max="1000"
             value={filters.priceMax}
-            onChange={(e) => setFilters((f) => ({ ...f, priceMax: Number(e.target.value) || 1 }))}
+            onChange={(e) => {
+              const next = Number(e.target.value) || 1;
+              setFilters((f) => ({
+                ...f,
+                priceMax: next,
+                // The default float cap (20M) is built for small-caps; at
+                // higher prices that filter silently kills every result.
+                // Auto-widen it when the user hasn't touched float yet.
+                maxFloat:
+                  next > 30 && f.maxFloat === DEFAULTS.maxFloat
+                    ? 500
+                    : f.maxFloat,
+              }));
+            }}
             className={inputCls}
           />
         </label>

@@ -56,7 +56,9 @@ async function fetchYahooChart(symbol: string): Promise<YahooChart> {
         "Mozilla/5.0 (compatible; BuyOrBeSoldWatchlist/1.0; +https://buyorbesold.com)",
       Accept: "application/json",
     },
-    next: { revalidate: 300 },
+    // Small-cap catalyst watchlist moves intraday; keep cache short so the
+    // price + RVOL stays recognizable against what the reader sees elsewhere.
+    next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error(`yahoo ${res.status} ${symbol}`);
   return (await res.json()) as YahooChart;

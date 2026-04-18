@@ -1,6 +1,7 @@
 ---
 title: Bullion still has room, and nobody's talking about it
 date: 2026-04-10
+publishedAt: 2026-04-10T07:30:00-04:00
 summary: Gold and silver are quietly grinding higher while everyone argues about tech earnings. The setup looks familiar.
 tags:
   - gold

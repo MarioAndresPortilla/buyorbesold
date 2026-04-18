@@ -189,6 +189,7 @@ Remember: output ONLY the JSON object with title, summary, take, and tags. No ma
   return {
     slug,
     date: today,
+    publishedAt: new Date().toISOString(),
     title: parsed.title,
     summary: parsed.summary,
     take: parsed.take,

@@ -121,7 +121,7 @@ export default async function ScannerPage({ searchParams }: PageProps) {
 
         {/* Mario's watchlist */}
         {watchlist.length > 0 && (
-          <WatchlistPanel entries={watchlist} />
+          <WatchlistPanel entries={watchlist} scannedAt={scan.scannedAt} />
         )}
 
         <SiteFooter sub="Cached 5 min · Data: Yahoo Finance, Finnhub · Not financial advice." />
@@ -345,7 +345,13 @@ function SetupCard({
   );
 }
 
-function WatchlistPanel({ entries }: { entries: WatchlistEntry[] }) {
+function WatchlistPanel({
+  entries,
+  scannedAt,
+}: {
+  entries: WatchlistEntry[];
+  scannedAt: string;
+}) {
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -357,6 +363,13 @@ function WatchlistPanel({ entries }: { entries: WatchlistEntry[] }) {
             What I'm personally watching today
           </p>
         </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--accent)]">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--accent)] opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--accent)]" />
+          </span>
+          Live · {formatTime(scannedAt)}
+        </span>
       </div>
       <div className="divide-y divide-[color:var(--border)] rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]">
         {entries.map((e) => {

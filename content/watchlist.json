@@ -1,14 +1,34 @@
 {
-  "$comment": "Mario's watchlist. Edit this file, git push, deploy = updated on site. Each item: symbol (Yahoo format), optional note (<120 chars).",
-  "updatedAt": "2026-04-11",
+  "$comment": "Mario's catalyst watchlist — small/micro-cap names with the profile he flagged on 2026-04-16: low float, news-pivot spike setups (BIRD → AI data center, MYSE/BTOG copycats, IMMP/AGAE/KZIA/LRHC daily gainers with news). These aren't long-term holds — they're the names he wants on screen when a catalyst hits. Edit this file, git push, deploy = updated on site.",
+  "updatedAt": "2026-04-16",
   "items": [
-    { "symbol": "SPY", "note": "The tape. Anchor to everything." },
-    { "symbol": "QQQ", "note": "Tech beta. Reaction to rates matters more than earnings." },
-    { "symbol": "GLD", "note": "Core bullion exposure. Long while real yields hold." },
-    { "symbol": "SLV", "note": "Leverage to gold — and to industrial demand when mfg PMI turns." },
-    { "symbol": "IWM", "note": "Small caps. Leading indicator for risk appetite." },
-    { "symbol": "TLT", "note": "Long bonds. Watch the 20y for rates reversal." },
-    { "symbol": "UUP", "note": "Dollar. If DXY breaks, gold + BTC are the bid." },
-    { "symbol": "VIX", "note": "Volatility regime. >20 = careful. <13 = complacency warning." }
+    {
+      "symbol": "BIRD",
+      "note": "Shoe co. pivot to AI data centers. +800% on the pivot news. Template for this whole playbook — every move afterward is a copycat."
+    },
+    {
+      "symbol": "MYSE",
+      "note": "Same AI-pivot playbook as BIRD. Spiked >100%. Watch for halts, dilution risk, and second-wave short."
+    },
+    {
+      "symbol": "BTOG",
+      "note": "Third in the AI-pivot copycat chain. +100%. The later the copy, the faster the fade — usually the short side."
+    },
+    {
+      "symbol": "IMMP",
+      "note": "Top gainer w/ news 2026-04-16. Low-float biotech, headline-driven. Size small — these halt twice a session."
+    },
+    {
+      "symbol": "AGAE",
+      "note": "Top gainer w/ news 2026-04-16. Micro-cap, news momentum play. Plan the short side once the first red candle prints on high volume."
+    },
+    {
+      "symbol": "KZIA",
+      "note": "Top gainer w/ news 2026-04-16. Classic low-float biotech catalyst. Watch the 9/20 EMA on the 5m for entries."
+    },
+    {
+      "symbol": "LRHC",
+      "note": "Top gainer w/ news 2026-04-16. Small-cap news mover. Dip-buy setup forms when volume dies into VWAP."
+    }
   ]
 }

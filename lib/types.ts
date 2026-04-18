@@ -57,6 +57,8 @@ export interface MarketData {
   macro: MacroStats;
   sectors: Sector[];
   fearGreed: DualFearGreed;
+  /** This week's scheduled US macro releases; empty when Finnhub isn't configured. */
+  economicCalendar: MacroEvent[];
   updatedAt: string;
 }
 
@@ -131,7 +133,14 @@ export type BriefMeta =
 
 export interface Brief {
   slug: string;
+  /** YYYY-MM-DD (day-level, used for slugs, sitemap, sorting). */
   date: string;
+  /**
+   * Full publication timestamp as ISO 8601 (e.g. 2026-04-10T08:00:00-04:00).
+   * Set when frontmatter provides a time; absent when only a bare YYYY-MM-DD
+   * was given. Display code should fall back to `date` when missing.
+   */
+  publishedAt?: string;
   title: string;
   summary: string;
   take: string;

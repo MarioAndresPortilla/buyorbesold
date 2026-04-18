@@ -39,6 +39,13 @@ export type ScannerCriteria = typeof DEFAULT_CRITERIA;
 /**
  * Merge user-provided overrides with defaults. Clamps values to safe ranges
  * so users can't accidentally DoS us with maxCandidates=10000.
+ *
+ * The default setup (price $1–$20, float <20M) is built for low-float small
+ * caps. When a user widens `priceMax` above ~$30 without also raising
+ * `maxFloat`, we auto-relax the float cap — otherwise effectively zero
+ * names qualify (a $150 stock with <20M float is a rounding error of the
+ * market). Users who *want* a low-float filter at higher prices can still
+ * pass `maxFloat` explicitly.
  */
 export function parseCriteria(params: Record<string, string | undefined>): ScannerCriteria {
   const num = (key: string, fallback: number, min: number, max: number) => {
@@ -48,10 +55,19 @@ export function parseCriteria(params: Record<string, string | undefined>): Scann
     if (!Number.isFinite(n)) return fallback;
     return Math.max(min, Math.min(max, n));
   };
+
+  const priceMax = num("priceMax", DEFAULT_CRITERIA.priceMax, 0.10, 1000);
+  const maxFloatExplicit =
+    params.maxFloat !== undefined && params.maxFloat !== "";
+  const maxFloatDefault =
+    priceMax > 30 ? 500_000_000 : DEFAULT_CRITERIA.maxFloat;
+
   return {
     priceMin: num("priceMin", DEFAULT_CRITERIA.priceMin, 0.01, 500),
-    priceMax: num("priceMax", DEFAULT_CRITERIA.priceMax, 0.10, 1000),
-    maxFloat: num("maxFloat", DEFAULT_CRITERIA.maxFloat, 1_000_000, 500_000_000),
+    priceMax,
+    maxFloat: maxFloatExplicit
+      ? num("maxFloat", DEFAULT_CRITERIA.maxFloat, 1_000_000, 500_000_000)
+      : maxFloatDefault,
     minRvol: num("minRvol", DEFAULT_CRITERIA.minRvol, 0.5, 10),
     smaBouncePct: num("smaBouncePct", DEFAULT_CRITERIA.smaBouncePct, 0.005, 0.10),
     maxCandidates: num("maxCandidates", DEFAULT_CRITERIA.maxCandidates, 10, 50),

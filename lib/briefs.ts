@@ -41,7 +41,14 @@ const VALID_TYPES: readonly BriefType[] = [
 ];
 
 // Reserved frontmatter keys that don't flow into `meta`.
-const RESERVED_KEYS = new Set(["title", "date", "summary", "tags", "type"]);
+const RESERVED_KEYS = new Set([
+  "title",
+  "date",
+  "publishedAt",
+  "summary",
+  "tags",
+  "type",
+]);
 
 let cached: Brief[] | null = null;
 
@@ -55,9 +62,53 @@ function parseFile(filename: string): Brief | null {
     const summary = typeof data.summary === "string" ? data.summary.trim() : "";
     const take = content.trim();
 
+    // Accept two frontmatter shapes:
+    //   date: 2026-04-10                              → day only
+    //   date: 2026-04-10T08:00:00-04:00               → full timestamp
+    //   date: 2026-04-10 + publishedAt: <iso>         → explicit publishedAt
+    // `date` stays YYYY-MM-DD (used for slugs/sitemap). When a time is
+    // present we also populate `publishedAt` with the full ISO so the UI
+    // can render "Apr 10, 2026 · 8:00 AM ET".
     let date = "";
-    if (typeof data.date === "string") date = data.date;
-    else if (data.date instanceof Date) date = data.date.toISOString().slice(0, 10);
+    let publishedAt: string | undefined;
+
+    const readIso = (v: unknown): string | undefined => {
+      if (v instanceof Date) return v.toISOString();
+      if (typeof v !== "string") return undefined;
+      const trimmed = v.trim();
+      if (!trimmed) return undefined;
+      // Only treat as ISO timestamp when it contains a time component.
+      if (!/[T ]\d{2}:\d{2}/.test(trimmed)) return undefined;
+      const d = new Date(trimmed);
+      return Number.isFinite(d.getTime()) ? d.toISOString() : undefined;
+    };
+
+    if (typeof data.date === "string") {
+      const iso = readIso(data.date);
+      if (iso) {
+        publishedAt = iso;
+        date = iso.slice(0, 10);
+      } else {
+        date = data.date.trim().slice(0, 10);
+      }
+    } else if (data.date instanceof Date) {
+      // gray-matter parses un-quoted YAML dates into Date @ UTC midnight;
+      // a midnight-UTC value means "day only" and we don't set publishedAt.
+      const d = data.date;
+      date = d.toISOString().slice(0, 10);
+      const hasTime =
+        d.getUTCHours() !== 0 ||
+        d.getUTCMinutes() !== 0 ||
+        d.getUTCSeconds() !== 0;
+      if (hasTime) publishedAt = d.toISOString();
+    }
+
+    // Explicit publishedAt wins over whatever we derived from `date`.
+    const explicitPublishedAt = readIso(data.publishedAt);
+    if (explicitPublishedAt) {
+      publishedAt = explicitPublishedAt;
+      if (!date) date = explicitPublishedAt.slice(0, 10);
+    }
 
     const tags = Array.isArray(data.tags)
       ? data.tags
@@ -96,6 +147,7 @@ function parseFile(filename: string): Brief | null {
     return {
       slug: filename.replace(/\.md$/, ""),
       date,
+      publishedAt,
       title,
       summary,
       take,
@@ -107,6 +159,22 @@ function parseFile(filename: string): Brief | null {
     console.warn(`[briefs] parse fail ${filename}:`, err);
     return null;
   }
+}
+
+/**
+ * Newest first. Uses `publishedAt` when both briefs have it so multiple
+ * posts on the same day order by time-of-day; otherwise falls back to
+ * the YYYY-MM-DD `date` string.
+ */
+function compareBriefsDesc(a: Brief, b: Brief): number {
+  if (a.publishedAt && b.publishedAt) {
+    return b.publishedAt.localeCompare(a.publishedAt);
+  }
+  if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+  // Same day, only one has a timestamp: the timestamped one wins (newer).
+  if (a.publishedAt) return -1;
+  if (b.publishedAt) return 1;
+  return 0;
 }
 
 function loadAll(): Brief[] {
@@ -125,7 +193,7 @@ function loadAll(): Brief[] {
   const briefs = files
     .map(parseFile)
     .filter((b): b is Brief => b !== null)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => compareBriefsDesc(a, b));
   cached = briefs;
   return briefs;
 }

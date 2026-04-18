@@ -13,18 +13,6 @@ interface SparklineProps {
   className?: string;
 }
 
-function fallbackWalk(up: boolean, points: number): number[] {
-  const out: number[] = [];
-  let v = 50;
-  for (let i = 0; i < points; i++) {
-    const drift = up ? 0.4 : -0.4;
-    const noise = (Math.random() - 0.5) * 4;
-    v = Math.max(5, Math.min(95, v + drift + noise));
-    out.push(v);
-  }
-  return out;
-}
-
 export default function Sparkline({
   data,
   up,
@@ -57,6 +45,8 @@ export default function Sparkline({
     return () => ro.disconnect();
   }, [fallbackWidth]);
 
+  const hasRealData = Array.isArray(data) && data.length > 1;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -73,7 +63,11 @@ export default function Sparkline({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    const series = data && data.length > 1 ? data : fallbackWalk(up, 24);
+    // Refuse to draw anything when we don't have real intraday points —
+    // previous behavior generated a random walk that read as real data.
+    if (!hasRealData) return;
+
+    const series = data as number[];
     const min = Math.min(...series);
     const max = Math.max(...series);
     const range = max - min || 1;
@@ -112,11 +106,23 @@ export default function Sparkline({
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.stroke();
-  }, [data, up, measuredWidth, height, stroke, fill]);
+  }, [data, up, measuredWidth, height, stroke, fill, hasRealData]);
 
   return (
-    <div ref={wrapRef} className={className ?? "w-full"} style={{ height }}>
+    <div
+      ref={wrapRef}
+      className={className ?? "w-full"}
+      style={{ height, position: "relative" }}
+    >
       <canvas ref={canvasRef} aria-hidden />
+      {!hasRealData && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[9px] uppercase tracking-[0.2em] text-[color:var(--muted)] opacity-60"
+          aria-hidden
+        >
+          no intraday data
+        </div>
+      )}
     </div>
   );
 }

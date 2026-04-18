@@ -1,6 +1,7 @@
 ---
 title: SPX and BTC are trading like the same asset again
 date: 2026-04-09
+publishedAt: 2026-04-09T07:30:00-04:00
 summary: The 30-day correlation between the S&P 500 and Bitcoin just flipped back above 0.7. That matters for how you size.
 tags:
   - bitcoin

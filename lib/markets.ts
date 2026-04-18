@@ -1,4 +1,12 @@
-import type { DualFearGreed, FearGreed, MacroStats, MarketData, Sector, Ticker } from "./types";
+import type {
+  DualFearGreed,
+  FearGreed,
+  MacroEvent,
+  MacroStats,
+  MarketData,
+  Sector,
+  Ticker,
+} from "./types";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
@@ -290,6 +298,142 @@ const SECTOR_ETFS: Array<{ code: string; symbol: string; name: string }> = [
   { code: "COMMS", symbol: "XLC", name: "Communications" },
 ];
 
+// ---- Economic calendar (Finnhub) ------------------------------------------
+// Finnhub's /calendar/economic returns scheduled releases with actual/forecast
+// values as they print. We pull a rolling Mon–Sun window around "today" so
+// the dashboard always shows "this week" regardless of which day it is.
+
+type FinnhubEconomicEvent = {
+  actual?: number | string | null;
+  country?: string;
+  estimate?: number | string | null;
+  event?: string;
+  impact?: string; // "low" | "medium" | "high"
+  prev?: number | string | null;
+  time?: string; // "YYYY-MM-DD HH:mm:SS" UTC
+  unit?: string;
+};
+
+type FinnhubEconomicResp = {
+  economicCalendar?: { result?: FinnhubEconomicEvent[] };
+};
+
+function formatMacroValue(v: unknown, unit?: string): string | undefined {
+  if (v === null || v === undefined || v === "") return undefined;
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n)) {
+    const s = String(v).trim();
+    return s || undefined;
+  }
+  // Heuristic formatting: K/M for volumes, % for percents, otherwise raw.
+  const u = (unit ?? "").trim();
+  if (u === "%" || u.toLowerCase() === "percent") return `${n.toFixed(1)}%`;
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  if (Number.isInteger(n)) return String(n);
+  return n.toFixed(2);
+}
+
+/**
+ * This week's US macro calendar (Mon–Sun around "now") from Finnhub. Returns
+ * an empty array when the key is missing or the call fails — the UI then
+ * falls back to its static defaults so the dashboard still renders.
+ */
+export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
+  const apiKey = process.env.FINNHUB_API_KEY?.trim();
+  if (!apiKey) return [];
+
+  // Monday of this week in UTC → Sunday. Keeps the view stable for users
+  // hitting the dashboard mid-week and avoids "empty Saturday".
+  const now = new Date();
+  const dow = now.getUTCDay(); // 0 = Sun
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(now);
+  monday.setUTCDate(now.getUTCDate() + mondayOffset);
+  monday.setUTCHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+
+  const from = monday.toISOString().slice(0, 10);
+  const to = sunday.toISOString().slice(0, 10);
+  const url = `https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${apiKey}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+      next: { revalidate: 60 * 60 * 6 }, // calendar moves slowly
+    });
+    if (!res.ok) throw new Error(`finnhub econ ${res.status}`);
+    const json = (await res.json()) as FinnhubEconomicResp;
+    const raw = json.economicCalendar?.result ?? [];
+    const usOnly = raw.filter(
+      (e) => (e.country ?? "").toUpperCase() === "US" && e.event
+    );
+
+    // High > medium > low, within a day sort by time.
+    const impactOf = (i?: string): MacroEvent["impact"] => {
+      const v = (i ?? "").toLowerCase();
+      if (v === "high") return "HIGH";
+      if (v === "medium" || v === "med") return "MED";
+      return "LOW";
+    };
+
+    const mapped = usOnly
+      .map<MacroEvent | null>((e) => {
+        if (!e.time || !e.event) return null;
+        const dt = new Date(e.time.replace(" ", "T") + "Z");
+        if (!Number.isFinite(dt.getTime())) return null;
+        // Render weekday + HH:mm in America/New_York so readers and the
+        // Finnhub event line up (Finnhub returns UTC).
+        const weekday = dt
+          .toLocaleDateString("en-US", {
+            timeZone: "America/New_York",
+            weekday: "short",
+          })
+          .toUpperCase();
+        const time = dt.toLocaleTimeString("en-US", {
+          timeZone: "America/New_York",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        const impact = impactOf(e.impact);
+        const previous = formatMacroValue(e.prev, e.unit);
+        const estimate = formatMacroValue(
+          e.actual ?? e.estimate,
+          e.unit
+        );
+        return {
+          day: weekday,
+          time: `${time} ET`,
+          name: e.event,
+          previous,
+          estimate,
+          impact,
+          _sortKey: dt.getTime(),
+          _impactRank: impact === "HIGH" ? 0 : impact === "MED" ? 1 : 2,
+        } as MacroEvent & { _sortKey: number; _impactRank: number };
+      })
+      .filter((e): e is MacroEvent & { _sortKey: number; _impactRank: number } => e !== null);
+
+    // Trim the noise: keep HIGH + MED in full, cap LOW at 6 across the week
+    // (otherwise Finnhub floods the panel with housing surveys, etc.).
+    const high = mapped.filter((e) => e.impact === "HIGH");
+    const med = mapped.filter((e) => e.impact === "MED");
+    const low = mapped
+      .filter((e) => e.impact === "LOW")
+      .slice(0, Math.max(0, 6 - high.length - med.length));
+    const combined = [...high, ...med, ...low].sort(
+      (a, b) => a._sortKey - b._sortKey
+    );
+    // strip private sort fields
+    return combined.map(({ _sortKey: _s, _impactRank: _i, ...rest }) => rest);
+  } catch (err) {
+    console.warn("[markets] finnhub econ calendar fail:", err);
+    return [];
+  }
+}
+
 export async function fetchSectors(): Promise<Sector[]> {
   const results = await Promise.all(
     SECTOR_ETFS.map(async ({ code, symbol, name }) => {
@@ -325,6 +469,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     macro,
     sectors,
     fearGreed,
+    economicCalendar,
   ] = await Promise.all([
     safeYahoo("^GSPC", "SPX", "S&P 500"),
     safeBitcoin(),
@@ -344,6 +489,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     fetchMacroStats(),
     fetchSectors(),
     fetchFearGreed(),
+    fetchEconomicCalendar(),
   ]);
 
   return {
@@ -365,6 +511,7 @@ export async function fetchAllMarkets(): Promise<MarketData> {
     macro,
     sectors,
     fearGreed,
+    economicCalendar,
     updatedAt: new Date().toISOString(),
   };
 }

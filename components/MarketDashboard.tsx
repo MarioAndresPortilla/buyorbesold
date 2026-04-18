@@ -156,7 +156,7 @@ export default function MarketDashboard({ initialData, brief }: MarketDashboardP
             <SectorHeatmap sectors={data.sectors} />
           </Panel>
           <Panel title="This Week's Macro Events">
-            <MacroCalendar />
+            <MacroCalendar events={data.economicCalendar} />
           </Panel>
         </section>
 

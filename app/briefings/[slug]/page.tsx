@@ -7,6 +7,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import BriefBody from "@/components/BriefBody";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { formatBriefDate } from "@/lib/format";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://buyorbesold.vercel.app";
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: brief.summary,
       url,
       type: "article",
-      publishedTime: brief.date,
+      publishedTime: brief.publishedAt ?? brief.date,
       authors: ["Mario"],
       tags: brief.tags,
     },
@@ -59,8 +60,8 @@ export default async function BriefPage({ params }: PageProps) {
     },
     headline: brief.title,
     description: brief.summary,
-    datePublished: brief.date,
-    dateModified: brief.date,
+    datePublished: brief.publishedAt ?? brief.date,
+    dateModified: brief.publishedAt ?? brief.date,
     author: [
       {
         "@type": "Person",
@@ -103,7 +104,9 @@ export default async function BriefPage({ params }: PageProps) {
 
         <div className="mt-6">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--muted)]">
-            <span>{brief.date}</span>
+            <time dateTime={brief.publishedAt ?? brief.date}>
+              {formatBriefDate(brief)}
+            </time>
             {brief.type && brief.type !== "brief" && (
               <span className="rounded border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-1.5 py-0.5 font-bold tracking-wider text-[color:var(--accent)]">
                 {brief.type}

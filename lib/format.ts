@@ -48,3 +48,47 @@ export function formatTime(iso: string): string {
     return iso;
   }
 }
+
+/**
+ * Header timestamp for a published brief. When a full `publishedAt` exists
+ * we render "Apr 10, 2026 · 8:00 AM ET"; otherwise just "Apr 10, 2026".
+ * All rendering is pinned to America/New_York so readers — and Mario —
+ * see the same wall-clock time regardless of viewer locale/SSR environment.
+ */
+export function formatBriefDate(
+  brief: { date: string; publishedAt?: string }
+): string {
+  const iso = brief.publishedAt;
+  if (!iso) return formatBriefDay(brief.date);
+  try {
+    const d = new Date(iso);
+    if (!Number.isFinite(d.getTime())) return formatBriefDay(brief.date);
+    const day = d.toLocaleDateString("en-US", {
+      timeZone: "America/New_York",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const time = d.toLocaleTimeString("en-US", {
+      timeZone: "America/New_York",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return `${day} · ${time} ET`;
+  } catch {
+    return formatBriefDay(brief.date);
+  }
+}
+
+/** "Apr 10, 2026" from a YYYY-MM-DD string, avoiding TZ-off-by-one. */
+function formatBriefDay(yyyyMmDd: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(yyyyMmDd)) return yyyyMmDd;
+  const [y, m, d] = yyyyMmDd.slice(0, 10).split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}

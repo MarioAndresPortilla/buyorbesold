@@ -39,7 +39,7 @@ export async function GET() {
       <title>${escape(b.title)}</title>
       <link>${url}</link>
       <guid isPermaLink="true">${url}</guid>
-      <pubDate>${rfc822(b.date)}</pubDate>
+      <pubDate>${rfc822(b.publishedAt ?? b.date)}</pubDate>
       <description>${escape(body)}</description>
       ${b.tags.map((t) => `<category>${escape(t)}</category>`).join("\n      ")}
     </item>`;

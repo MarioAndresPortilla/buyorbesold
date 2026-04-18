@@ -74,7 +74,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const briefRoutes: MetadataRoute.Sitemap = briefs.map((b) => ({
     url: `${SITE_URL}/briefings/${b.slug}`,
-    lastModified: new Date(b.date),
+    lastModified: new Date(b.publishedAt ?? b.date),
     changeFrequency: "monthly",
     priority: 0.6,
   }));

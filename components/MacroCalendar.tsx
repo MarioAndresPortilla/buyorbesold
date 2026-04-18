@@ -62,9 +62,16 @@ function impactClasses(impact: MacroEvent["impact"]): string {
 }
 
 export default function MacroCalendar({ events }: MacroCalendarProps) {
-  const list = events && events.length ? events : DEFAULT_EVENTS;
+  const hasLive = !!events && events.length > 0;
+  const list = hasLive ? events! : DEFAULT_EVENTS;
   return (
-    <div className="divide-y divide-[color:var(--border)]">
+    <div>
+      {!hasLive && (
+        <div className="mb-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.15em] text-amber-400">
+          Sample calendar · set FINNHUB_API_KEY for live data
+        </div>
+      )}
+      <div className="divide-y divide-[color:var(--border)]">
       {list.map((e, i) => (
         <div
           key={`${e.day}-${e.time}-${i}`}
@@ -95,6 +102,7 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
           </span>
         </div>
       ))}
+      </div>
     </div>
   );
 }

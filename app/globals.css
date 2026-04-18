@@ -53,6 +53,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Global readability bump: everything 20% bigger. `zoom` (vs. transform
+   or font-size) is the only approach that scales the app's many
+   arbitrary `text-[Npx]` classes along with rem-based sizes. Widely
+   supported in Chromium, Safari, and Firefox 126+. If we ever need to
+   disable this (e.g. embed page, printing), add `zoom: 1` on the scope. */
+html {
+  zoom: 1.2;
+}
+
 /* Ensure canvas elements never punch through their containers. */
 canvas {
   max-width: 100%;
