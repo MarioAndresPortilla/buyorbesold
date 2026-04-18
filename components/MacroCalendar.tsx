@@ -117,10 +117,18 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
       <div className="divide-y divide-[color:var(--border)]">
         {visible.map((e, i) => {
           const monthDay = formatMonthDay(e.date);
+          // The server sorts upcoming events (today + future) to the top,
+          // so the first three rows of page 1 are exactly "what's next on
+          // the tape". Tag them so the reader's eye lands there first.
+          const isUpNext = current === 1 && i < 3;
           return (
             <div
               key={`${e.date ?? e.day}-${e.time}-${i}`}
-              className="flex items-start justify-between gap-3 py-3 font-mono text-[11px]"
+              className={`relative flex items-start justify-between gap-3 py-3 font-mono text-[11px] ${
+                isUpNext
+                  ? "border-l-2 border-l-[color:var(--accent)] bg-[color:var(--accent)]/[0.04] pl-2"
+                  : ""
+              }`}
             >
               {/* Day badge */}
               <div className="flex w-14 shrink-0 flex-col items-start">
@@ -135,7 +143,14 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
 
               {/* Event + meta (stacks on narrow, inlines on sm+) */}
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[color:var(--text)]">{e.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[color:var(--text)]">{e.name}</span>
+                  {isUpNext && (
+                    <span className="shrink-0 rounded-full border border-[color:var(--accent)]/50 bg-[color:var(--accent)]/10 px-1.5 py-[1px] text-[8px] font-bold uppercase tracking-[0.18em] text-[color:var(--accent)]">
+                      Up next
+                    </span>
+                  )}
+                </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-[color:var(--muted)]">
                   <span>prev {e.previous ?? "—"}</span>
                   <span>est {e.estimate ?? "—"}</span>
