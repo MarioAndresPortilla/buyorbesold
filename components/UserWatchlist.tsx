@@ -248,9 +248,12 @@ function Row({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-bebas text-xl leading-none tracking-wide text-[color:var(--text)]">
+            <Link
+              href={`/chart/${encodeURIComponent(entry.symbol)}`}
+              className="font-bebas text-xl leading-none tracking-wide text-[color:var(--text)] transition-colors hover:text-[color:var(--accent)]"
+            >
               {entry.symbol}
-            </span>
+            </Link>
             {entry.name && (
               <span className="truncate font-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
                 {entry.name}
