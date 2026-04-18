@@ -311,7 +311,11 @@ function scoreCandidate(c: EnrichedCandidate, float?: number): number {
   return score;
 }
 
-function buildTags(c: EnrichedCandidate, float?: number): string[] {
+function buildTags(
+  c: EnrichedCandidate,
+  float: number | undefined,
+  hasFloatApi: boolean
+): string[] {
   const tags: string[] = [];
   if (c.smaBounce === "BOTH") tags.push("50+200 BOUNCE");
   else if (c.smaBounce === "SMA50") tags.push("50 SMA BOUNCE");
@@ -320,6 +324,11 @@ function buildTags(c: EnrichedCandidate, float?: number): string[] {
   else if (c.rvol >= 1.5) tags.push(`RVOL ${c.rvol.toFixed(1)}x`);
   if (float && float < 5_000_000) tags.push(`${(float / 1e6).toFixed(1)}M FLOAT`);
   else if (float && float < 20_000_000) tags.push(`${(float / 1e6).toFixed(1)}M FLOAT`);
+  else if (hasFloatApi && (float === undefined || float === 0)) {
+    // Be explicit when Finnhub didn't have coverage for the name — readers
+    // should know the float cap wasn't actually applied to this row.
+    tags.push("FLOAT ?");
+  }
   return tags;
 }
 
@@ -334,24 +343,33 @@ export async function runScanner(
     notes.push("FINNHUB_API_KEY not set — float filter disabled, showing momentum-only results");
   }
 
-  // 1. Pull candidate pool from three Yahoo predefined screeners in parallel.
-  //    most_actives = heavy volume, day_gainers/losers = biggest %-movers.
+  // 1. Pull candidate pool from multiple Yahoo predefined screeners in
+  //    parallel. most_actives/gainers/losers skew mega-cap; small_cap_gainers
+  //    and aggressive_small_caps drag the pool down into the $1–$20 band
+  //    where Mario's low-float setups actually live. A single screener
+  //    failing doesn't take the whole pool out — we collect what works.
   let rawCandidates: YahooScreenerQuote[] = [];
-  try {
-    const pools = await Promise.all([
-      fetchYahooScreener("most_actives", 100),
-      fetchYahooScreener("day_gainers", 100),
-      fetchYahooScreener("day_losers", 100),
-    ]);
-    // Dedupe by symbol (a stock can appear in multiple screens).
-    const seen = new Set<string>();
-    for (const quote of pools.flat()) {
+  const screenerIds = [
+    "most_actives",
+    "day_gainers",
+    "day_losers",
+    "small_cap_gainers",
+    "aggressive_small_caps",
+  ];
+  const pools = await Promise.allSettled(
+    screenerIds.map((id) => fetchYahooScreener(id, 100))
+  );
+  const seen = new Set<string>();
+  for (const p of pools) {
+    if (p.status !== "fulfilled") continue;
+    for (const quote of p.value) {
       if (!quote.symbol || seen.has(quote.symbol)) continue;
       seen.add(quote.symbol);
       rawCandidates.push(quote);
     }
-  } catch (err) {
-    console.error("[scanner] yahoo screener fail:", err);
+  }
+  if (rawCandidates.length === 0) {
+    console.error("[scanner] all yahoo screeners failed");
     notes.push("Yahoo screener unavailable — returning empty result");
     return emptyResult(degraded, notes, 0, criteria);
   }
@@ -419,16 +437,18 @@ export async function runScanner(
     }
   }
 
-  // 6. Final filter by Mario's criteria: SMA bounce required, RVOL >= 1.5,
-  //    float < 20M (only if we have float data).
+  // 6. Final filter by Mario's criteria: SMA bounce required, RVOL above
+  //    minimum, float below cap. Finnhub lacks coverage on some micro-caps,
+  //    so a missing `shareOutstanding` used to silently reject otherwise
+  //    valid setups — now we pass those through with a "FLOAT ?" tag so the
+  //    reader knows the filter was "best-effort" for that name.
   const qualified: SetupCandidate[] = enriched
     .filter((c) => {
       if (!c.smaBounce) return false;
       if (c.rvol < criteria.minRvol) return false;
       if (apiKey) {
         const f = floats.get(c.symbol);
-        if (f === undefined || f === 0) return false; // need float data
-        if (f > criteria.maxFloat) return false;
+        if (f !== undefined && f > 0 && f > criteria.maxFloat) return false;
       }
       return true;
     })
@@ -449,19 +469,79 @@ export async function runScanner(
         smaDistance: c.smaDistance,
         smaBounce: c.smaBounce,
         score: scoreCandidate(c, float),
-        tags: buildTags(c, float),
+        tags: buildTags(c, float, !!apiKey),
       } satisfies SetupCandidate;
     });
 
   // 7. Split + rank.
-  const longs = qualified
+  let longs = qualified
     .filter((c) => c.changePct >= 0)
     .sort((a, b) => b.score - a.score || b.changePct - a.changePct)
     .slice(0, 3);
-  const shorts = qualified
+  let shorts = qualified
     .filter((c) => c.changePct < 0)
     .sort((a, b) => b.score - a.score || a.changePct - b.changePct)
     .slice(0, 3);
+
+  // 7b. Momentum-only fallback. The strict SMA-bounce filter is narrow by
+  //     design — most days it catches 0 names. Rather than render an empty
+  //     panel, we backfill the open slots with highest-RVOL / biggest %
+  //     movers from the same pool, tagged so it's clear these are the
+  //     "best momentum in the pool" picks, not the full Mario setup.
+  if (longs.length < 3 || shorts.length < 3) {
+    const fallbackAll: SetupCandidate[] = enriched
+      .filter((c) => c.rvol >= 1) // keep a minimal sanity floor
+      .map((c) => {
+        const float = floats.get(c.symbol);
+        const tags = buildTags(c, float, !!apiKey);
+        tags.unshift("MOMENTUM");
+        return {
+          symbol: c.symbol,
+          name: c.name,
+          price: c.price,
+          changePct: c.changePct,
+          volume: c.volume,
+          avgVol10d: c.avgVol10d,
+          rvol: c.rvol,
+          float,
+          marketCap: c.marketCap,
+          sma50: c.sma50,
+          sma200: c.sma200,
+          smaDistance: c.smaDistance,
+          smaBounce: c.smaBounce,
+          score: Math.abs(c.changePct) * Math.min(c.rvol, 5),
+          tags,
+        } satisfies SetupCandidate;
+      });
+
+    const longSymbols = new Set(longs.map((c) => c.symbol));
+    const shortSymbols = new Set(shorts.map((c) => c.symbol));
+
+    if (longs.length < 3) {
+      const extra = fallbackAll
+        .filter((c) => c.changePct >= 0 && !longSymbols.has(c.symbol))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3 - longs.length);
+      longs = [...longs, ...extra];
+      if (extra.length) {
+        notes.push(
+          `Strict setup matched ${longs.length - extra.length} long — backfilled ${extra.length} by momentum (RVOL × %).`
+        );
+      }
+    }
+    if (shorts.length < 3) {
+      const extra = fallbackAll
+        .filter((c) => c.changePct < 0 && !shortSymbols.has(c.symbol))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3 - shorts.length);
+      shorts = [...shorts, ...extra];
+      if (extra.length) {
+        notes.push(
+          `Strict setup matched ${shorts.length - extra.length} short — backfilled ${extra.length} by momentum (RVOL × %).`
+        );
+      }
+    }
+  }
 
   // 8. Enrich top picks with latest news (only the 6 that will actually be
   //    shown — keeps Finnhub usage minimal).

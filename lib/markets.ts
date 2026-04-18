@@ -351,19 +351,22 @@ export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
   const apiKey = process.env.FINNHUB_API_KEY?.trim();
   if (!apiKey) return [];
 
-  // Monday of this week in UTC → Sunday. Keeps the view stable for users
-  // hitting the dashboard mid-week and avoids "empty Saturday".
+  // Window: Monday of *this* week through Sunday of *next* week — 14 days.
+  // A pure Mon–Sun week dies on Saturday/Sunday (no future events left),
+  // so a reader checking the dashboard over the weekend would see nothing
+  // upcoming at all. Two weeks keeps "last Mon's CPI" visible as context
+  // while still exposing next Monday's prints as truly up-next.
   const now = new Date();
   const dow = now.getUTCDay(); // 0 = Sun
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(now);
   monday.setUTCDate(now.getUTCDate() + mondayOffset);
   monday.setUTCHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const nextSunday = new Date(monday);
+  nextSunday.setUTCDate(monday.getUTCDate() + 13);
 
   const from = monday.toISOString().slice(0, 10);
-  const to = sunday.toISOString().slice(0, 10);
+  const to = nextSunday.toISOString().slice(0, 10);
   const url = `https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${apiKey}`;
 
   try {
@@ -451,24 +454,25 @@ export async function fetchEconomicCalendar(): Promise<MacroEvent[]> {
       })
       .filter((e): e is MacroEvent & { _sortKey: number } => e !== null);
 
-    // Surface the whole week, but anchor the list on the reader's "today"
-    // instead of Monday — upcoming events (today + future) come first in
-    // chronological order, then past events in reverse chronological
-    // order (yesterday before Monday). That keeps page 1 focused on what
-    // actually matters when someone loads the dashboard mid-week.
-    const todayStart = (() => {
-      const ymd = new Date().toLocaleDateString("en-CA", {
-        timeZone: "America/New_York",
-      });
-      const [y, m, d] = ymd.split("-").map(Number);
-      return Date.UTC(y, (m ?? 1) - 1, d ?? 1);
-    })();
+    // Anchor on the reader's "today in ET". Upcoming events (today or
+    // later) come first in chronological order and are flagged `upcoming:
+    // true` so the UI can badge them — past events follow in reverse-
+    // chrono and never get the "Up next" treatment even though they may
+    // occupy the top of a sparse panel (e.g. Saturday).
+    const etToday = new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/New_York",
+    });
+    const [ty, tm, td] = etToday.split("-").map(Number);
+    const todayStart = Date.UTC(ty, (tm ?? 1) - 1, td ?? 1);
+
     const upcoming = mapped
       .filter((e) => e._sortKey >= todayStart)
-      .sort((a, b) => a._sortKey - b._sortKey);
+      .sort((a, b) => a._sortKey - b._sortKey)
+      .map((e) => ({ ...e, upcoming: true }));
     const past = mapped
       .filter((e) => e._sortKey < todayStart)
-      .sort((a, b) => b._sortKey - a._sortKey);
+      .sort((a, b) => b._sortKey - a._sortKey)
+      .map((e) => ({ ...e, upcoming: false }));
     const combined = [...upcoming, ...past];
     return combined.map(({ _sortKey: _s, ...rest }) => rest);
   } catch (err) {

@@ -85,6 +85,12 @@ export interface MacroEvent {
   previous?: string;
   estimate?: string;
   impact: "HIGH" | "MED" | "LOW";
+  /**
+   * True when the event is scheduled for today (ET) or later. The UI uses
+   * this to label the genuinely-future rows as "Up next" — past events
+   * shouldn't carry that badge even if they appear at the top of the list.
+   */
+  upcoming?: boolean;
 }
 
 export type BriefType = "brief" | "earnings" | "event" | "setup" | "macro";

@@ -72,8 +72,7 @@ function impactClasses(impact: MacroEvent["impact"]): string {
  */
 function formatMonthDay(yyyyMmDd?: string): string | null {
   if (!yyyyMmDd) return null;
-  const parts = yyyyMmDd.slice(0, 10).split("-").map(Number);
-  const [y, m, d] = parts;
+  const [y, m, d] = yyyyMmDd.slice(0, 10).split("-").map(Number);
   if (!y || !m || !d) return null;
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
     timeZone: "UTC",
@@ -94,6 +93,21 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
   const start = (current - 1) * PAGE_SIZE;
   const visible = list.slice(start, start + PAGE_SIZE);
   const rangeEnd = Math.min(start + PAGE_SIZE, list.length);
+
+  // "Up next" applies only on page 1 and only to genuinely-upcoming rows.
+  // We take up to 3 visible rows that carry `upcoming: true`, skipping any
+  // past events that sort ahead of them. On a sparse weekend the panel
+  // may open to "yesterday's CPI" — those rows rightly get NO badge.
+  const upNextIndices = new Set<number>();
+  if (current === 1) {
+    let remaining = 3;
+    visible.forEach((e, i) => {
+      if (remaining > 0 && e.upcoming) {
+        upNextIndices.add(i);
+        remaining -= 1;
+      }
+    });
+  }
 
   return (
     <div>
@@ -117,20 +131,19 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
       <div className="divide-y divide-[color:var(--border)]">
         {visible.map((e, i) => {
           const monthDay = formatMonthDay(e.date);
-          // The server sorts upcoming events (today + future) to the top,
-          // so the first three rows of page 1 are exactly "what's next on
-          // the tape". Tag them so the reader's eye lands there first.
-          const isUpNext = current === 1 && i < 3;
+          const isUpNext = upNextIndices.has(i);
           return (
             <div
               key={`${e.date ?? e.day}-${e.time}-${i}`}
               className={`relative flex items-start justify-between gap-3 py-3 font-mono text-[11px] ${
                 isUpNext
                   ? "border-l-2 border-l-[color:var(--accent)] bg-[color:var(--accent)]/[0.04] pl-2"
-                  : ""
+                  : e.upcoming === false
+                    ? "opacity-70"
+                    : ""
               }`}
             >
-              {/* Day badge */}
+              {/* Day + date + time badge */}
               <div className="flex w-14 shrink-0 flex-col items-start">
                 <span className="font-bold text-[color:var(--accent)]">{e.day}</span>
                 {monthDay && (
@@ -141,7 +154,7 @@ export default function MacroCalendar({ events }: MacroCalendarProps) {
                 <span className="text-[9px] text-[color:var(--muted)]">{e.time}</span>
               </div>
 
-              {/* Event + meta (stacks on narrow, inlines on sm+) */}
+              {/* Event + meta */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-[color:var(--text)]">{e.name}</span>
