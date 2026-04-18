@@ -51,9 +51,9 @@ export function formatTime(iso: string): string {
 
 /**
  * Header timestamp for a published brief. When a full `publishedAt` exists
- * we render "Apr 10, 2026 · 8:00 AM ET"; otherwise just "Apr 10, 2026".
- * All rendering is pinned to America/New_York so readers — and Mario —
- * see the same wall-clock time regardless of viewer locale/SSR environment.
+ * we render "Apr 10, 2026 · 8:00 AM ET · Premarket"; otherwise just
+ * "Apr 10, 2026". All rendering is pinned to America/New_York so readers —
+ * and Mario — see the same wall-clock time regardless of viewer locale.
  */
 export function formatBriefDate(
   brief: { date: string; publishedAt?: string }
@@ -74,10 +74,49 @@ export function formatBriefDate(
       hour: "numeric",
       minute: "2-digit",
     });
-    return `${day} · ${time} ET`;
+    const period = getBriefPeriod(d);
+    return `${day} · ${time} ET · ${period}`;
   } catch {
     return formatBriefDay(brief.date);
   }
+}
+
+/**
+ * Part of the trading day a timestamp falls into. Aligns with the AI brief
+ * editions (premarket / midday / postmarket) plus explicit "Open" and
+ * "Power Hour" buckets readers recognize from the tape. All thresholds are
+ * evaluated in America/New_York so DST shifts don't flip the label.
+ *
+ *   04:00–09:30  Premarket
+ *   09:30–12:00  Open
+ *   12:00–14:00  Midday
+ *   14:00–16:00  Power Hour
+ *   16:00–20:00  Postmarket
+ *   else         Overnight
+ */
+export function getBriefPeriod(input: Date | string): string {
+  const d = input instanceof Date ? input : new Date(input);
+  if (!Number.isFinite(d.getTime())) return "";
+  // Derive the ET hour/minute by formatting in that zone (avoids shipping
+  // a full tz database or depending on Intl segment shapes).
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const hourPart = parts.find((p) => p.type === "hour")?.value ?? "00";
+  const minutePart = parts.find((p) => p.type === "minute")?.value ?? "00";
+  const hour = Number(hourPart) % 24; // "24" → 0 on some locales
+  const minute = Number(minutePart);
+  const mins = hour * 60 + minute;
+
+  if (mins >= 240 && mins < 570) return "Premarket";   // 04:00–09:30
+  if (mins >= 570 && mins < 720) return "Open";        // 09:30–12:00
+  if (mins >= 720 && mins < 840) return "Midday";      // 12:00–14:00
+  if (mins >= 840 && mins < 960) return "Power Hour";  // 14:00–16:00
+  if (mins >= 960 && mins < 1200) return "Postmarket"; // 16:00–20:00
+  return "Overnight";
 }
 
 /** "Apr 10, 2026" from a YYYY-MM-DD string, avoiding TZ-off-by-one. */
